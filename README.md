@@ -8,3 +8,7 @@ Technically, FlowTask is built with a Node.js + Express backend following RESTfu
 # Robson Paulo da Silva.
 
 "Every trial and experience you have passed through is necessary for your salvation. Faith is the foundation of all things; it is the principle of action in all intelligent beings." (Brigam Young)
+
+# Gabriela Elizabeth Rivera
+
+"Fundamentals are the building blocks of fun." (Mikhail Baryshnikov)

@@ -16,3 +16,8 @@ Technically, FlowTask is built with a Node.js + Express backend following RESTfu
 # Jacob M Preciado
 
 "Carry on. Things will work out. If you keep trying and praying and working, things will work out. They always do. If you want to die at an early age, dwell on the negative. Accentuate the positive, and you’ll be around for a while." - Gordon B. Hinckley
+
+
+# Claudia Oralia Madrid Ontiveros
+
+“Ask, and it shall be given you; seek, and ye shall find; knock, and it shall be opened unto you.” —Matthew 7:7

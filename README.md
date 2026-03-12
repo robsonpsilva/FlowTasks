@@ -12,3 +12,7 @@ Technically, FlowTask is built with a Node.js + Express backend following RESTfu
 # Gabriela Elizabeth Rivera
 
 "Fundamentals are the building blocks of fun." (Mikhail Baryshnikov)
+
+# Jacob M Preciado
+
+"Carry on. Things will work out. If you keep trying and praying and working, things will work out. They always do. If you want to die at an early age, dwell on the negative. Accentuate the positive, and you’ll be around for a while." - Gordon B. Hinckley

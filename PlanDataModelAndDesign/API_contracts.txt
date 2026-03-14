@@ -1,0 +1,127 @@
+Operação: Cadastrar Provedores de Autenticação
+Endpoint: POST /api/auth-providers
+
+Descrição: Registra um novo provedor de autenticação no sistema.
+
+Payload (JSON):
+
+JSON
+{
+  "name": "Google"
+}
+Resposta de Sucesso (201 Created)
+JSON
+{
+  "id": 1,
+  "name": "Google",
+  "created_at": "2026-03-14T10:19:49Z"
+}
+
+1. API Contract Interfaces (Frontend and Backend)
+You can maintain these types in a shared types/auth.ts file or separately in each layer:
+
+TypeScript
+// The structure of an individual provider
+export interface AuthProvider {
+  id: number;
+  name: string;
+}
+
+// The contract for the bulk creation request
+export interface CreateProvidersRequest {
+  providers: {
+    name: string;
+  }[];
+}
+
+// The contract for the API response
+export interface CreateProvidersResponse {
+  message: string;
+  count: number;
+  providers: AuthProvider[];
+}
+2. Endpoint Implementation (Node.js with Express)
+By using TypeScript on the backend, you ensure that req.body is treated with the correct type:
+
+TypeScript
+import { Request, Response } from 'express';
+import { CreateProvidersRequest, CreateProvidersResponse } from '../types/auth';
+
+export const createBulkProviders = async (
+  req: Request<{}, {}, CreateProvidersRequest>, 
+  res: Response<CreateProvidersResponse | { error: string }>
+) => {
+  const { providers } = req.body;
+
+  try {
+    // Database insertion logic via transaction...
+    // ...
+    
+    res.status(201).json({
+      message: "Providers created successfully",
+      count: providers.length,
+      providers: [/* Simulated database return */]
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+3. Frontend Call (Next.js - Client Side)
+In your component or Server Action, you will consume the API while maintaining type safety:
+
+TypeScript
+async function registerProviders() {
+  const payload: CreateProvidersRequest = {
+    providers: [{ name: 'Google' }, { name: 'Email/Password' }]
+  };
+
+  const response = await fetch('/api/auth-providers/bulk', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+
+  const data: CreateProvidersResponse = await response.json();
+  console.log(`Success: ${data.message} - Total: ${data.count}`);
+}
+
+
+1. API Contract (Individual Operation)
+To create a single record, we use the POST method directly at the /api/auth-providers endpoint.
+
+Endpoint: POST /api/auth-providers
+
+Payload (JSON):
+
+JSON
+{
+  "name": "GitHub"
+}
+2. Backend Implementation (Node.js with Express)
+When creating an individual provider, your code becomes more straightforward as it does not require a complex transaction:
+
+TypeScript
+import { Request, Response } from 'express';
+
+// Interface for individual provider creation
+interface CreateProviderRequest {
+  name: string;
+}
+
+export const createProvider = async (
+  req: Request<{}, {}, CreateProviderRequest>,
+  res: Response
+) => {
+  const { name } = req.body;
+
+  try {
+    const result = await pool.query(
+      'INSERT INTO public.auth_providers (name) VALUES ($1) RETURNING id, name',
+      [name]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    res.status(400).json({ error: "Could not create provider" });
+  }
+};

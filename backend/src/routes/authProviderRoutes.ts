@@ -12,10 +12,10 @@ const router = Router();
  * @openapi
  * /api/auth-providers:
  *   get:
- *     summary: Lista todos os provedores de autenticação
+ *     summary: Lists all authentication providers.
  *     responses:
  *       200:
- *         description: Lista retornada com sucesso
+ *         description: List returned successfully.
  *         content:
  *           application/json:
  *             schema:
@@ -28,14 +28,14 @@ const router = Router();
  *                   name:
  *                     type: string
  *   post:
- *     summary: Cria um novo provedor de autenticação
+ *     summary: Creates a new authentication provider
  *     responses:
  *       201:
- *         description: Provedor criado com sucesso
+ *         description: Provider created successfully
  *
  * /api/auth-providers/{id}:
  *   put:
- *     summary: Atualiza um provedor de autenticação
+ *     summary: Update an authentication provider
  *     parameters:
  *       - in: path
  *         name: id
@@ -44,9 +44,9 @@ const router = Router();
  *           type: integer
  *     responses:
  *       200:
- *         description: Provedor atualizado com sucesso
+ *         description: Provider updated successfully
  *   delete:
- *     summary: Remove um provedor de autenticação
+ *     summary: Remove an authentication provider
  *     parameters:
  *       - in: path
  *         name: id
@@ -55,7 +55,7 @@ const router = Router();
  *           type: integer
  *     responses:
  *       204:
- *         description: Provedor removido com sucesso
+ *         description: Provider successfully removed
  */
 router.get('/', getProviders);
 router.post('/', createProvider);

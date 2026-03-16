@@ -1,4 +1,4 @@
-import pool from './db';
+import pool from './db.ts';
 
 async function testConnection() {
   try {

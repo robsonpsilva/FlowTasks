@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import pool from '../db';
+import pool from '../db.ts';
 
 export const getProviders = async (req: Request, res: Response) => {
   try {

@@ -4,9 +4,10 @@ import {
   getUserById, 
   createUser, 
   updateUser, 
-  deleteUser 
-} from '../controllers/userController';
-import { assignRoleToUser } from '../controllers/roleController';
+  deleteUser, 
+  getUserWithRole 
+} from '../controllers/userController.ts';
+import { assignRoleToUser } from '../controllers/roleController.ts';
 
 const router = Router();
 
@@ -33,10 +34,12 @@ const router = Router();
  *                 type: string
  *               email:
  *                 type: string
- *               external_id:
+ *               password:
  *                 type: string
- *               department_id:
+ *               provider_id:
  *                 type: integer
+ *               external_uid:
+ *                 type: string
  *     responses:
  *       201:
  *         description: User created successfully
@@ -61,11 +64,31 @@ const router = Router();
  *       - in: path
  *         name: id
  *         required: true
+ *         description: The unique ID of the user
  *         schema:
  *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               provider_id:
+ *                 type: string
+ *               external_uid:
+ *                 type: string
+ *               is_active:
+ *                 type: boolean
  *     responses:
  *       200:
- *         description: User updated
+ *         description: User updated successfully
  *   delete:
  *     summary: Delete a user
  *     tags: [Users]
@@ -78,6 +101,35 @@ const router = Router();
  *     responses:
  *       204:
  *         description: User deleted
+ *
+ * /api/users/{id}/profile:
+ *   get:
+ *     summary: Get user profile with role information
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: User profile and role retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 name:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *                 role_name:
+ *                   type: string
+ *       404:
+ *         description: User not found
  *
  * /api/users/assign-role:
  *   post:
@@ -100,12 +152,14 @@ const router = Router();
  */
 
 
+
 // Rotas de Usuário
 router.get('/', getUsers);
 router.get('/:id', getUserById);
 router.post('/', createUser);
 router.put('/:id', updateUser);
 router.delete('/:id', deleteUser);
+router.get('/:id/profile', getUserWithRole);
 
 // Rota de associação de papéis
 router.post('/assign-role', assignRoleToUser);

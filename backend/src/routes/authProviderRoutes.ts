@@ -4,7 +4,7 @@ import {
   createProvider, 
   updateProvider, 
   deleteProvider 
-} from '../controllers/authProviderController';
+} from '../controllers/authProviderController.ts';
 
 const router = Router();
 

@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
-import pool from '../db';
+import pool from '../db.ts';
 
 /**
  * Retrieves all roles from the database
  */
 export const getRoles = async (req: Request, res: Response) => {
   try {
-    const result = await pool.query('SELECT * FROM roles ORDER BY id ASC');
+    const result = await pool.query('SELECT * FROM public.roles ORDER BY id ASC');
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: 'Error fetching roles' });
@@ -20,7 +20,7 @@ export const createRole = async (req: Request, res: Response) => {
   const { name, description } = req.body;
   try {
     const result = await pool.query(
-      'INSERT INTO roles (name, description) VALUES ($1, $2) RETURNING *',
+      'INSERT INTO public.roles (name, description) VALUES ($1, $2) RETURNING *',
       [name, description]
     );
     res.status(201).json(result.rows[0]);
@@ -50,7 +50,7 @@ export const updateRole = async (req: Request, res: Response) => {
   const { name, description } = req.body;
   try {
     const result = await pool.query(
-      'UPDATE roles SET name = $1, description = $2 WHERE id = $3 RETURNING *',
+      'UPDATE public.roles SET name = $1, description = $2 WHERE id = $3 RETURNING *',
       [name, description, id]
     );
     
@@ -72,7 +72,7 @@ export const assignRoleToUser = async (req: Request, res: Response) => {
   const { users_id, roles_id } = req.body;
   try {
     await pool.query(
-      'INSERT INTO roles_users (users_id, roles_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+      'INSERT INTO public.roles_users (users_id, roles_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
       [users_id, roles_id]
     );
     res.status(200).json({ message: 'Role assigned successfully' });

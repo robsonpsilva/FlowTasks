@@ -1,127 +1,202 @@
-Operação: Cadastrar Provedores de Autenticação
-Endpoint: POST /api/auth-providers
+===============================================================================
+FLOWTASKS API SERVICE CONTRACTS - VERSION 1.0.0
+===============================================================================
+Date: March 17, 2026
+Project: FlowTasks Backend
+Author: Robson Paulo da Silva
+Environment: Development (http://localhost:3001)
 
-Descrição: Registra um novo provedor de autenticação no sistema.
+-------------------------------------------------------------------------------
+1. AUTHENTICATION PROVIDERS SERVICE
+Endpoint: /api/auth-providers
+-------------------------------------------------------------------------------
 
-Payload (JSON):
-
-JSON
-{
-  "name": "Google"
-}
-Resposta de Sucesso (201 Created)
-JSON
-{
-  "id": 1,
-  "name": "Google",
-  "created_at": "2026-03-14T10:19:49Z"
-}
-
-1. API Contract Interfaces (Frontend and Backend)
-You can maintain these types in a shared types/auth.ts file or separately in each layer:
-
-TypeScript
-// The structure of an individual provider
-export interface AuthProvider {
-  id: number;
-  name: string;
-}
-
-// The contract for the bulk creation request
-export interface CreateProvidersRequest {
-  providers: {
-    name: string;
-  }[];
-}
-
-// The contract for the API response
-export interface CreateProvidersResponse {
-  message: string;
-  count: number;
-  providers: AuthProvider[];
-}
-2. Endpoint Implementation (Node.js with Express)
-By using TypeScript on the backend, you ensure that req.body is treated with the correct type:
-
-TypeScript
-import { Request, Response } from 'express';
-import { CreateProvidersRequest, CreateProvidersResponse } from '../types/auth';
-
-export const createBulkProviders = async (
-  req: Request<{}, {}, CreateProvidersRequest>, 
-  res: Response<CreateProvidersResponse | { error: string }>
-) => {
-  const { providers } = req.body;
-
-  try {
-    // Database insertion logic via transaction...
-    // ...
-    
-    res.status(201).json({
-      message: "Providers created successfully",
-      count: providers.length,
-      providers: [/* Simulated database return */]
-    });
-  } catch (error) {
-    res.status(500).json({ error: "Internal server error" });
+[POST /api/auth-providers]
+- Description: Creates a new authentication source (e.g., Google, GitHub, Internal).
+- Request Body:
+  {
+    "name": "string"
   }
-};
-3. Frontend Call (Next.js - Client Side)
-In your component or Server Action, you will consume the API while maintaining type safety:
-
-TypeScript
-async function registerProviders() {
-  const payload: CreateProvidersRequest = {
-    providers: [{ name: 'Google' }, { name: 'Email/Password' }]
-  };
-
-  const response = await fetch('/api/auth-providers/bulk', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
-
-  const data: CreateProvidersResponse = await response.json();
-  console.log(`Success: ${data.message} - Total: ${data.count}`);
-}
-
-
-1. API Contract (Individual Operation)
-To create a single record, we use the POST method directly at the /api/auth-providers endpoint.
-
-Endpoint: POST /api/auth-providers
-
-Payload (JSON):
-
-JSON
-{
-  "name": "GitHub"
-}
-2. Backend Implementation (Node.js with Express)
-When creating an individual provider, your code becomes more straightforward as it does not require a complex transaction:
-
-TypeScript
-import { Request, Response } from 'express';
-
-// Interface for individual provider creation
-interface CreateProviderRequest {
-  name: string;
-}
-
-export const createProvider = async (
-  req: Request<{}, {}, CreateProviderRequest>,
-  res: Response
-) => {
-  const { name } = req.body;
-
-  try {
-    const result = await pool.query(
-      'INSERT INTO public.auth_providers (name) VALUES ($1) RETURNING id, name',
-      [name]
-    );
-
-    res.status(201).json(result.rows[0]);
-  } catch (error) {
-    res.status(400).json({ error: "Could not create provider" });
+- Success Response (201 Created):
+  {
+    "id": 1,
+    "name": "string"
   }
-};
+- Error Response (400 Bad Request):
+  {
+    "error": "Provider name already exists or invalid data"
+  }
+
+[GET /api/auth-providers]
+- Description: Lists all registered authentication providers.
+- Success Response (200 OK): Array of provider objects.
+
+-------------------------------------------------------------------------------
+2. ROLES SERVICE
+Endpoint: /api/roles
+-------------------------------------------------------------------------------
+
+[POST /api/roles]
+- Description: Registers a new system role for access control.
+- Request Body:
+  {
+    "name": "string",
+    "description": "string"
+  }
+- Success Response (201 Created): Role object with generated ID.
+
+[PUT /api/roles/{id}]
+- Description: Updates the name or description of an existing role.
+- Request Body:
+  {
+    "name": "string",
+    "description": "string"
+  }
+- Success Response (200 OK): Updated role object.
+
+-------------------------------------------------------------------------------
+3. USERS SERVICE
+Endpoint: /api/users
+-------------------------------------------------------------------------------
+
+[POST /api/users]
+- Description: Registers a new user. Passwords are hashed via Bcrypt (12 rounds).
+- Request Body:
+  {
+    "name": "string",
+    "email": "user@example.com",
+    "password": "plaintext_password",
+    "provider_id": integer,
+    "external_id": "string_uid"
+  }
+- Success Response (201 Created):
+  {
+    "id": 1,
+    "name": "string",
+    "email": "user@example.com",
+    "provider_id": 1,
+    "external_uid": "string_uid",
+    "created_at": "ISO-TIMESTAMP",
+    "updated_at": "ISO-TIMESTAMP"
+  }
+- Security Note: "password_hash" is strictly omitted from all responses.
+
+[POST /api/users/assign-role]
+- Description: Links a user to a specific role in the junction table.
+- Request Body:
+  {
+    "users_id": integer,
+    "roles_id": integer
+  }
+- Success Response (200 OK):
+  {
+    "message": "Role assigned successfully"
+  }
+
+[GET /api/users/{id}/profile]
+- Description: Retrieves full user profile including Role and Auth Provider details.
+- SQL Logic: JOINs users, roles_users, roles, and auth_providers.
+- Success Response (200 OK):
+  {
+    "id": 1,
+    "name": "string",
+    "email": "string",
+    "role_name": "Admin",
+    "provider_name": "Internal",
+    "created_at": "ISO-TIMESTAMP"
+  }
+
+-------------------------------------------------------------------------------
+4. OPERATIONAL WORKFLOW: CREATING AN ADMIN USER
+-------------------------------------------------------------------------------
+To establish a user with Admin privileges, the following sequence is required:
+
+STEP 1: Create/Identify Auth Provider
+  Call [POST /api/auth-providers] -> Get "provider_id"
+
+STEP 2: Create/Identify Admin Role
+  Call [POST /api/roles] { "name": "Admin" } -> Get "roles_id"
+
+STEP 3: Create User Account
+  Call [POST /api/users] -> Get "users_id"
+
+STEP 4: Finalize Privilege Assignment
+  Call [POST /api/users/assign-role] using "users_id" and "roles_id"
+
+===============================================================================
+5. TASKS SERVICE
+Endpoint: /api/tasks
+===============================================================================
+
+[List Active Tasks]
+- Endpoint: GET /api/tasks
+- Controller: getTasks(req, res)
+- Success Response (200 OK):
+  [
+    {
+      "id": 1,
+      "title": "Setup Database Server",
+      "description": "PostgreSQL configuration for ArtHup ecosystem",
+      "category_id": 5,
+      "status": "OPEN",
+      "priority": "HIGH",
+      "is_active": true,
+      "created_at": "2026-03-17T18:00:00Z"
+    }
+  ]
+
+[Create New Task]
+- Endpoint: POST /api/tasks
+- Controller: createTask(req, res)
+- Business Rules:
+  - title: required, minimum of 10 characters.
+  - status: cannot be initialized as COMPLETED.
+  - priority: if description contains "URGENT", it will be forced to HIGH.
+- Request Body:
+  {
+    "title": "Develop API Integration",
+    "description": "CRITICAL task for the marketplace",
+    "category_id": 2,
+    "priority": "LOW"
+  }
+- Success Response (201 Created): returns created object with adjusted priority.
+- Error Response (400 Bad Request): short title or non-existent category.
+
+[Update Task]
+- Endpoint: PUT /api/tasks/{id}
+- Controller: updateTask(req, res)
+- Business Rules:
+  - Immutability: if status = COMPLETED, title and category_id cannot be modified.
+  - Logical Cascade: if is_active = false, all linked task_schedules will have end_date = NOW().
+- Request Body (partial):
+  {
+    "status": "IN_PROGRESS",
+    "priority": "MEDIUM"
+  }
+- Success Response (200 OK): update successful.
+- Error Response (404 Not Found): non-existent ID.
+- Error Response (400 Business Rule Violation): attempt to edit archived task without reactivation.
+
+[Remove / Archive Task]
+- Endpoint: DELETE /api/tasks/{id}
+- Controller: deleteTask(req, res)
+- Business Rules:
+  - Hard Delete: if status = OPEN and description empty → permanent deletion.
+  - Soft Delete Cascade: if content/progress exists → set is_active = false and terminate schedules.
+- Success Response (200 OK):
+  {
+    "id": "15",
+    "action": "SOFT_DELETE_CASCADE",
+    "message": "Task and all associated schedules archived."
+  }
+- Error Response (400 Business Rule Violation): attempt to delete task with COMPLETED status.
+
+-------------------------------------------------------------------------------
+HTTP STATUS CODES SUMMARY
+-------------------------------------------------------------------------------
+200 OK - Successful operation (Read, Update, Delete)
+201 Created - Resource created successfully
+400 Bad Request - Business rule violation
+404 Not Found - Resource not found
+500 Internal Error - Database connection failure or unexpected error
+===============================================================================

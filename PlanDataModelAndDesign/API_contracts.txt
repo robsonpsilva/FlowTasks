@@ -1,5 +1,5 @@
 ===============================================================================
-FLOWTASKS API SERVICE CONTRACTS - VERSION 1.0.0
+FLOWTASKS API SERVICE CONTRACTS - VERSION 1.1.0 (FULL CRUD)
 ===============================================================================
 Date: March 17, 2026
 Project: FlowTasks Backend
@@ -13,23 +13,23 @@ Endpoint: /api/auth-providers
 
 [POST /api/auth-providers]
 - Description: Creates a new authentication source (e.g., Google, GitHub, Internal).
-- Request Body:
-  {
-    "name": "string"
-  }
-- Success Response (201 Created):
-  {
-    "id": 1,
-    "name": "string"
-  }
-- Error Response (400 Bad Request):
-  {
-    "error": "Provider name already exists or invalid data"
-  }
+- Request Body: { "name": "string" }
+- Success Response (201 Created): { "id": 1, "name": "string" }
+- Error Response (400 Bad Request): "Provider name already exists or invalid data"
 
 [GET /api/auth-providers]
 - Description: Lists all registered authentication providers.
 - Success Response (200 OK): Array of provider objects.
+
+[PUT /api/auth-providers/{id}]
+- Description: Updates the name of an existing provider.
+- Request Body: { "name": "string" }
+- Success Response (200 OK): Updated provider object.
+
+[DELETE /api/auth-providers/{id}]
+- Description: Removes a provider.
+- Constraint: Blocked if active users are linked to this provider.
+- Success Response (204 No Content).
 
 -------------------------------------------------------------------------------
 2. ROLES SERVICE
@@ -37,22 +37,23 @@ Endpoint: /api/roles
 -------------------------------------------------------------------------------
 
 [POST /api/roles]
-- Description: Registers a new system role for access control.
-- Request Body:
-  {
-    "name": "string",
-    "description": "string"
-  }
+- Description: Registers a new system role for access control (e.g., Admin, Editor).
+- Request Body: { "name": "string", "description": "string" }
 - Success Response (201 Created): Role object with generated ID.
+
+[GET /api/roles]
+- Description: Retrieves all available roles.
+- Success Response (200 OK): Array of role objects.
 
 [PUT /api/roles/{id}]
 - Description: Updates the name or description of an existing role.
-- Request Body:
-  {
-    "name": "string",
-    "description": "string"
-  }
+- Request Body: { "name": "string", "description": "string" }
 - Success Response (200 OK): Updated role object.
+
+[DELETE /api/roles/{id}]
+- Description: Removes a role. 
+- Constraint: Cannot delete if assigned to users (RBAC Integrity).
+- Success Response (204 No Content).
 
 -------------------------------------------------------------------------------
 3. USERS SERVICE
@@ -60,143 +61,85 @@ Endpoint: /api/users
 -------------------------------------------------------------------------------
 
 [POST /api/users]
-- Description: Registers a new user. Passwords are hashed via Bcrypt (12 rounds).
-- Request Body:
-  {
-    "name": "string",
-    "email": "user@example.com",
-    "password": "plaintext_password",
-    "provider_id": integer,
-    "external_id": "string_uid"
-  }
-- Success Response (201 Created):
-  {
-    "id": 1,
-    "name": "string",
-    "email": "user@example.com",
-    "provider_id": 1,
-    "external_uid": "string_uid",
-    "created_at": "ISO-TIMESTAMP",
-    "updated_at": "ISO-TIMESTAMP"
-  }
-- Security Note: "password_hash" is strictly omitted from all responses.
+- Description: Registers a new user. Passwords hashed via Bcrypt (12 rounds).
+- Request Body: { "name": "string", "email": "user@example.com", "password": "...", "provider_id": integer }
+- Success Response (201 Created): User object (excluding password_hash).
+
+[GET /api/users]
+- Description: Paginated list of all users.
+- Success Response (200 OK): Array of user objects.
+
+[PUT /api/users/{id}]
+- Description: Updates user metadata (name, email, or provider).
+- Success Response (200 OK): Updated user object.
+
+[DELETE /api/users/{id}]
+- Description: Deletes a user account.
+- Success Response (200 OK): { "message": "User deleted successfully" }
 
 [POST /api/users/assign-role]
 - Description: Links a user to a specific role in the junction table.
-- Request Body:
-  {
-    "users_id": integer,
-    "roles_id": integer
-  }
-- Success Response (200 OK):
-  {
-    "message": "Role assigned successfully"
-  }
+- Request Body: { "users_id": integer, "roles_id": integer }
+- Success Response (200 OK): { "message": "Role assigned successfully" }
+
+[DELETE /api/users/{id}/roles/{roleId}]
+- Description: Revokes a specific role from a user.
+- Success Response (200 OK): { "message": "Role revoked successfully" }
 
 [GET /api/users/{id}/profile]
-- Description: Retrieves full user profile including Role and Auth Provider details.
-- SQL Logic: JOINs users, roles_users, roles, and auth_providers.
-- Success Response (200 OK):
-  {
-    "id": 1,
-    "name": "string",
-    "email": "string",
-    "role_name": "Admin",
-    "provider_name": "Internal",
-    "created_at": "ISO-TIMESTAMP"
-  }
+- Description: Retrieves full user profile including Role and Auth Provider details via JOINs.
+- Success Response (200 OK): Full profile object.
 
 -------------------------------------------------------------------------------
-4. OPERATIONAL WORKFLOW: CREATING AN ADMIN USER
--------------------------------------------------------------------------------
-To establish a user with Admin privileges, the following sequence is required:
-
-STEP 1: Create/Identify Auth Provider
-  Call [POST /api/auth-providers] -> Get "provider_id"
-
-STEP 2: Create/Identify Admin Role
-  Call [POST /api/roles] { "name": "Admin" } -> Get "roles_id"
-
-STEP 3: Create User Account
-  Call [POST /api/users] -> Get "users_id"
-
-STEP 4: Finalize Privilege Assignment
-  Call [POST /api/users/assign-role] using "users_id" and "roles_id"
-
-===============================================================================
-5. TASKS SERVICE
+4. TASKS SERVICE
 Endpoint: /api/tasks
-===============================================================================
+-------------------------------------------------------------------------------
 
-[List Active Tasks]
-- Endpoint: GET /api/tasks
-- Controller: getTasks(req, res)
-- Success Response (200 OK):
-  [
-    {
-      "id": 1,
-      "title": "Setup Database Server",
-      "description": "PostgreSQL configuration for ArtHup ecosystem",
-      "category_id": 5,
-      "status": "OPEN",
-      "priority": "HIGH",
-      "is_active": true,
-      "created_at": "2026-03-17T18:00:00Z"
-    }
-  ]
+[GET /api/tasks]
+- Description: List all tasks where is_active = true.
+- Success Response (200 OK): Array of active task objects.
 
-[Create New Task]
-- Endpoint: POST /api/tasks
-- Controller: createTask(req, res)
-- Business Rules:
-  - title: required, minimum of 10 characters.
-  - status: cannot be initialized as COMPLETED.
-  - priority: if description contains "URGENT", it will be forced to HIGH.
-- Request Body:
-  {
-    "title": "Develop API Integration",
-    "description": "CRITICAL task for the marketplace",
-    "category_id": 2,
-    "priority": "LOW"
-  }
-- Success Response (201 Created): returns created object with adjusted priority.
-- Error Response (400 Bad Request): short title or non-existent category.
+[POST /api/tasks]
+- Description: Create task with Smart Priority (Keywords: URGENT, CRITICAL).
+- Rules: Title min 10 chars. Status cannot start as COMPLETED.
+- Success Response (201 Created).
 
-[Update Task]
-- Endpoint: PUT /api/tasks/{id}
-- Controller: updateTask(req, res)
-- Business Rules:
-  - Immutability: if status = COMPLETED, title and category_id cannot be modified.
-  - Logical Cascade: if is_active = false, all linked task_schedules will have end_date = NOW().
-- Request Body (partial):
-  {
-    "status": "IN_PROGRESS",
-    "priority": "MEDIUM"
-  }
-- Success Response (200 OK): update successful.
-- Error Response (404 Not Found): non-existent ID.
-- Error Response (400 Business Rule Violation): attempt to edit archived task without reactivation.
+[PUT /api/tasks/{id}]
+- Description: Update task fields.
+- Logical Cascade: If is_active is set to false, all task_schedules.end_date = NOW().
+- Success Response (200 OK).
 
-[Remove / Archive Task]
-- Endpoint: DELETE /api/tasks/{id}
-- Controller: deleteTask(req, res)
-- Business Rules:
-  - Hard Delete: if status = OPEN and description empty → permanent deletion.
-  - Soft Delete Cascade: if content/progress exists → set is_active = false and terminate schedules.
-- Success Response (200 OK):
-  {
-    "id": "15",
-    "action": "SOFT_DELETE_CASCADE",
-    "message": "Task and all associated schedules archived."
-  }
-- Error Response (400 Business Rule Violation): attempt to delete task with COMPLETED status.
+[DELETE /api/tasks/{id}]
+- Description: Hybrid Delete Strategy. 
+- Hard Delete: Empty/Draft tasks.
+- Soft Delete: Tasks with content (archives via is_active = false).
+- Success Response (200 OK).
+
+-------------------------------------------------------------------------------
+5. TASK SCHEDULES SERVICE
+Endpoint: /api/tasks/{taskId}/schedules
+-------------------------------------------------------------------------------
+
+[POST /api/tasks/{taskId}/schedules]
+- Description: Adds a new recurrence rule to a task (1:N relationship).
+- Request Body: { "frequency": "string", "days_of_week": "int[]", "start_date": "ISO-Date" }
+- Success Response (201 Created).
+
+[GET /api/tasks/{taskId}/schedules]
+- Description: Lists all active schedules for a specific task.
+- Success Response (200 OK).
+
+[DELETE /api/schedules/{id}]
+- Description: Removes a specific schedule without affecting the parent task.
+- Success Response (204 No Content).
 
 -------------------------------------------------------------------------------
 HTTP STATUS CODES SUMMARY
 -------------------------------------------------------------------------------
 200 OK - Successful operation (Read, Update, Delete)
 201 Created - Resource created successfully
-400 Bad Request - Business rule violation
+204 No Content - Successful deletion with no body
+400 Bad Request - Business rule violation / Invalid data
 404 Not Found - Resource not found
 500 Internal Error - Database connection failure or unexpected error
 ===============================================================================

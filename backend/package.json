@@ -6,12 +6,14 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node --experimental-strip-types src/index.ts"
+    "start": "node --experimental-strip-types src/index.ts",
+    "check-env": "node check-env.js",
+    "setup:dev": "pnpm run check-env && pnpm install && echo 'Environment ready for development!'"
   },
   "keywords": [],
-  "author": "",
+  "author": "Robson Paulo da Silva",
   "license": "ISC",
-  "description": "",
+  "description": "FlowTasks Backend Service",
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",

@@ -8,6 +8,7 @@ import authProviderRoutes from './routes/authProviderRoutes.ts';
 
 import userRoutes from './routes/userRoutes.ts';
 import roleRoutes from './routes/roleRoutes.ts';
+import taskRoutes from './routes/taskRoutes.ts';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -33,6 +34,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/api/auth-providers', authProviderRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/roles', roleRoutes);
+app.use('/api/tasks', taskRoutes); // Import task routes
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

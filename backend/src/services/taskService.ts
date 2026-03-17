@@ -4,6 +4,22 @@ import pool from '../db.js';
  * Service Layer for Tasks
  * Handles all business logic and database interactions.
  */
+
+/**
+ * @file taskService.ts
+ * @description The "Brain" of the application. This service layer houses the core Business Logic
+ * and enforces a rigorous logical flow for all task-related operations:
+ * * 1. Existence Lookup: Before any action, it performs a database check to ensure the entity exists.
+ * 2. Policy Enforcement: Validates business constraints (e.g., preventing the deletion of 'COMPLETED' tasks
+ * to preserve audit trails).
+ * 3. Strategy Decision (Hard vs. Soft Delete):
+ * - Executes a Physical DELETE for new, empty tasks.
+ * - Executes a Soft DELETE (is_active = false) for tasks with existing content/history.
+ * 4. Persistence: Manages direct interaction with the PostgreSQL pool for data integrity.
+ * 5. Detailed Feedback: Returns structured objects detailing the specific action taken (e.g., 'SOFT_DELETE').
+ * * @module Services/TaskService
+ */
+
 export const taskService = {
   /**
    * Retrieves all active tasks from the database.

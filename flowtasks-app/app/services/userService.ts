@@ -83,6 +83,33 @@ export const userService = {
     }
   },
 
+   async findProfilebyEmail(email: string) {
+    try {
+      const query = `
+        SELECT 
+          u.id, 
+          u.name, 
+          u.email, 
+          u.external_uid,
+          r.name as role_name,
+          ap.name as auth_provider_name
+        FROM public.users u
+        LEFT JOIN public.roles_users ur ON u.id = ur.users_id
+        LEFT JOIN public.roles r ON ur.roles_id = r.id
+        LEFT JOIN public.auth_providers ap ON u.provider_id = ap.id
+        WHERE u.email = $1
+      `;
+      
+      const result = await pool.query(query, [email]);
+      
+      if (result.rows.length === 0) return null;
+      
+      return result.rows[0];
+    } catch (error) {
+      console.error(`Error at userService.findProfilebyEmail for Email ${email}:`, error);
+      throw new Error('Database operation failed while fetching enriched user profile.');
+    }
+  },
   /**
    * Updates an existing user's basic information.
    */

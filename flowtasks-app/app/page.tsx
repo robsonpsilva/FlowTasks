@@ -1,3 +1,4 @@
+import LoginButton from "@/components/LoginButton";
 import Image from "next/image";
 
 export default function Home() {
@@ -58,6 +59,9 @@ export default function Home() {
           >
             Documentation
           </a>
+        </div>
+        <div className="mt-4">
+          <LoginButton />
         </div>
       </main>
     </div>

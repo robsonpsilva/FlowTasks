@@ -91,7 +91,9 @@ export const userService = {
           u.name, 
           u.email, 
           u.external_uid,
+          u.password_hash as password,
           r.name as role_name,
+          r.id as roleId,
           ap.name as auth_provider_name
         FROM public.users u
         LEFT JOIN public.roles_users ur ON u.id = ur.users_id

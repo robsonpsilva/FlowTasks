@@ -1,5 +1,5 @@
-import Logo from "../components/Logo";
-import AuthButtons from "../components/AuthButtons";
+import Logo from "./ui/components/Logo";
+import AuthButtons from "./ui/components/AuthButtons";
 
 export default function WelcomePage() {
   return (

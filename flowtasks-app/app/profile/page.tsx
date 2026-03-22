@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Sidebar from "../../components/Sidebar";
+import Sidebar from "../ui/components/Sidebar";
 
 export default function ProfilePage() {
   const [user, setUser] = useState({

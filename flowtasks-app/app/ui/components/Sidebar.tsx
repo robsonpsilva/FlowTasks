@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import Logo from "../components/Logo";
+import Logo from "./Logo";
 
 export default function Sidebar() {
   const [hovered, setHovered] = useState<string | null>(null);

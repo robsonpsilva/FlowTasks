@@ -45,7 +45,7 @@ export default function Sidebar() {
         }}
       >
         {/* HOME */}
-        <Link href="/home" style={{ textDecoration: "none" }}>
+        <Link href="./home" style={{ textDecoration: "none" }}>
           <div
             style={getStyle("home")}
             onMouseEnter={() => setHovered("home")}
@@ -56,7 +56,7 @@ export default function Sidebar() {
         </Link>
 
         {/* TASKS */}
-        <Link href="/tasks" style={{ textDecoration: "none" }}>
+        <Link href="./tasks" style={{ textDecoration: "none" }}>
           <div
             style={getStyle("tasks")}
             onMouseEnter={() => setHovered("tasks")}
@@ -67,7 +67,7 @@ export default function Sidebar() {
         </Link>
 
         {/* PROFILE */}
-        <Link href="/profile" style={{ textDecoration: "none" }}>
+        <Link href="./profile" style={{ textDecoration: "none" }}>
           <div
             style={getStyle("profile")}
             onMouseEnter={() => setHovered("profile")}
@@ -78,7 +78,7 @@ export default function Sidebar() {
         </Link>
 
         {/* AUTH */}
-        <Link href="/login" style={{ textDecoration: "none" }}>
+        <Link href="./login" style={{ textDecoration: "none" }}>
           <div
             style={getStyle("auth")}
             onMouseEnter={() => setHovered("auth")}

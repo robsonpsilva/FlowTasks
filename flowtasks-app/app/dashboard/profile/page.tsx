@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Sidebar from "../ui/components/Sidebar";
 
 export default function ProfilePage() {
   const [user, setUser] = useState({
@@ -12,16 +11,7 @@ export default function ProfilePage() {
   });
 
   return (
-    <main
-      style={{
-        display: "flex",
-        minHeight: "100vh",
-        backgroundColor: "#0a0a0a",
-        color: "white",
-      }}
-    >
-      <Sidebar />
-
+    <>
       <section
         style={{
           flex: 1,
@@ -201,6 +191,6 @@ export default function ProfilePage() {
           </div>
         </div>
       </section>
-    </main>
+    </>
   );
 }

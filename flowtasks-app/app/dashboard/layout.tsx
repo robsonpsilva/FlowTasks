@@ -1,4 +1,4 @@
-import Sidebar from "../ui/components/Sidebar";
+import Sidebar from "../ui/Sidebar";
 export const experimental_ppr = true;
 
 export default function Layout({ children }: { children: React.ReactNode }) {

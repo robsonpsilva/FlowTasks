@@ -60,11 +60,11 @@ export default function LoginForm({ onBack, onSuccess }: LoginFormProps) {
         </div>
       )}
 
-      <h2 className="text-2xl font-bold text-[#004E89]">Sign In to FlowTask</h2>
+      <h2 className="text-2xl font-bold text-white">Sign In to FlowTask</h2>
 
       <form onSubmit={handleLogin} className="space-y-4">
         <div className="flex flex-col gap-1.5 text-left">
-          <label className="text-sm font-bold text-[#004E89]">Email Address</label>
+          <label className="text-sm font-bold text-white">Email Address</label>
           <input 
             type="email" 
             required
@@ -75,7 +75,7 @@ export default function LoginForm({ onBack, onSuccess }: LoginFormProps) {
         </div>
 
         <div className="flex flex-col gap-1.5 text-left">
-          <label className="text-sm font-bold text-[#004E89]">Password</label>
+          <label className="text-sm font-bold text-white">Password</label>
           <input 
             type="password" 
             required
@@ -86,7 +86,7 @@ export default function LoginForm({ onBack, onSuccess }: LoginFormProps) {
         </div>
 
         <div className="flex flex-col gap-1.5 text-left">
-          <label className="text-sm font-bold text-[#004E89]">Sign in as</label>
+          <label className="text-sm font-bold text-white">Sign in as</label>
           <select 
             className="w-full p-4 rounded-xl border-2 border-[#F7C59F] outline-none focus:border-[#FF6B35] bg-white text-black cursor-pointer"
             value={loginData.roleId}
@@ -108,7 +108,7 @@ export default function LoginForm({ onBack, onSuccess }: LoginFormProps) {
         </button>
       </form>
 
-      <button onClick={onBack} className="text-sm text-[#004E89] underline block mx-auto hover:text-[#FF6B35] transition-colors">
+      <button onClick={onBack} className="text-sm text-white underline block mx-auto hover:text-yellow-300 transition-colors">
         Back to Options
       </button>
     </div>

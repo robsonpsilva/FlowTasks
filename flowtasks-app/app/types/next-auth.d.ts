@@ -8,6 +8,10 @@ declare module "next-auth" {
     user: {
       id: string;
       role: string;
+      email: string;
+      name: string;
+      provider?: string;
+      picture?: string;
     } & DefaultSession["user"];
   }
 
@@ -15,7 +19,12 @@ declare module "next-auth" {
    * Estende o objeto 'user' retornado no callback 'jwt' e 'signIn'
    */
   interface User {
+    id: string;
     role?: string;
+    email: string;
+    name: string;
+    provider?: string;
+    picture?: string;
   }
 }
 
@@ -26,5 +35,9 @@ declare module "next-auth/jwt" {
   interface JWT {
     userId: string;
     role: string;
+    email: string;
+    name: string;
+    provider?: string;
+    picture?: string;
   }
 }

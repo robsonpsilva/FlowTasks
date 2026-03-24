@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Logo from "./Logo";
+import { signOut } from "next-auth/react"; // importa o signOut
 
 export default function Sidebar() {
   const [hovered, setHovered] = useState<string | null>(null);
@@ -9,8 +10,7 @@ export default function Sidebar() {
   const getStyle = (name: string) => ({
     width: "100%",
     padding: "14px 16px",
-    backgroundColor:
-      hovered === name ? "#38bdf8" : "transparent",
+    backgroundColor: hovered === name ? "#38bdf8" : "transparent",
     color: "white",
     border: "1px solid #374151",
     borderRadius: "10px",
@@ -77,16 +77,15 @@ export default function Sidebar() {
           </div>
         </Link>
 
-        {/* AUTH */}
-        <Link href="./login" style={{ textDecoration: "none" }}>
-          <div
-            style={getStyle("auth")}
-            onMouseEnter={() => setHovered("auth")}
-            onMouseLeave={() => setHovered(null)}
-          >
-            Sign Out
-          </div>
-        </Link>
+        {/* SIGN OUT */}
+        <div
+          style={getStyle("auth")}
+          onMouseEnter={() => setHovered("auth")}
+          onMouseLeave={() => setHovered(null)}
+          onClick={() => signOut({ callbackUrl: "/login" })} // aqui faz logout
+        >
+          Sign Out
+        </div>
       </nav>
     </aside>
   );

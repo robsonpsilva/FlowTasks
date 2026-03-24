@@ -5,7 +5,7 @@ import Link from "next/link";
 export default function AuthButtons() {
   return (
     <>
-      <Link href="/login" style={{ textDecoration: "none", width: "100%" }}>
+      <Link href="/login?mode=email_login" style={{ textDecoration: "none", width: "100%" }}>
         <button
           style={{
             width: "100%",
@@ -24,7 +24,7 @@ export default function AuthButtons() {
         </button>
       </Link>
 
-      <Link href="/register" style={{ textDecoration: "none", width: "100%" }}>
+      <Link href="/login?mode=signup" style={{ textDecoration: "none", width: "100%" }}>
         <button
           style={{
             width: "100%",

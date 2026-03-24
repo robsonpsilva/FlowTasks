@@ -115,10 +115,10 @@ export default function CreateAccountFlow({ onBack }: { onBack: () => void }) {
       )}
 
       <form onSubmit={handleSignUp} className="w-full space-y-5 animate-in slide-in-from-left duration-300" noValidate>
-        <h2 className="text-2xl font-bold text-[#004E89]">New Account</h2>
+        <h2 className="text-2xl font-bold text-white">New Account</h2>
         
         <div className="flex flex-col gap-1.5 text-left">
-          <label className="text-sm font-bold text-[#004E89]">Full Name <span className="text-red-500">*</span></label>
+          <label className="text-sm font-bold text-white">Full Name <span className="text-red-500">*</span></label>
           <input 
             type="text" name="name" placeholder="Enter your full name" spellCheck="false"
             className={`w-full p-4 rounded-xl border-2 outline-none transition-all bg-white text-black ${errors.name ? "border-red-500 bg-red-50" : "border-[#F7C59F] focus:border-[#FF6B35]"}`}
@@ -127,7 +127,7 @@ export default function CreateAccountFlow({ onBack }: { onBack: () => void }) {
         </div>
 
         <div className="flex flex-col gap-1.5 text-left">
-          <label className="text-sm font-bold text-[#004E89]">Email Address <span className="text-red-500">*</span></label>
+          <label className="text-sm font-bold text-white">Email Address <span className="text-red-500">*</span></label>
           <input 
             type="email" name="email" placeholder="example@mail.com"
             className={`w-full p-4 rounded-xl border-2 outline-none transition-all bg-white text-black ${errors.email ? "border-red-500 bg-red-50" : "border-[#F7C59F] focus:border-[#FF6B35]"}`}
@@ -136,7 +136,7 @@ export default function CreateAccountFlow({ onBack }: { onBack: () => void }) {
         </div>
 
         <div className="flex flex-col gap-1.5 text-left">
-          <label className="text-sm font-bold text-[#004E89]">Password <span className="text-red-500">*</span></label>
+          <label className="text-sm font-bold text-white">Password <span className="text-red-500">*</span></label>
           <input 
             type="password" name="password" placeholder="Min. 8 characters"
             className={`w-full p-4 rounded-xl border-2 outline-none transition-all bg-white text-black ${errors.password ? "border-red-500 bg-red-50" : "border-[#F7C59F] focus:border-[#FF6B35]"}`}

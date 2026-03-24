@@ -25,6 +25,14 @@ export const socialAuthService = {
       
       const values = [data.name, data.email, data.provider_id, data.external_uid];
       const result = await pool.query(query, values);
+
+      const roleAssignmentQuery = `
+        INSERT INTO public.roles_users (users_id, roles_id)
+        VALUES ($1, 1)
+        ON CONFLICT (users_id, roles_id) DO NOTHING;
+      `;
+  
+      await pool.query(roleAssignmentQuery, [result.rows[0].id]);
       
       return result.rows[0];
     } catch (error) {

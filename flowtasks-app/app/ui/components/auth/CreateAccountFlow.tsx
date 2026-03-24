@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { useState, useEffect } from "react";
 
 export default function CreateAccountFlow({ onBack }: { onBack: () => void }) {
@@ -151,9 +152,12 @@ export default function CreateAccountFlow({ onBack }: { onBack: () => void }) {
           {isLoading ? "Saving to Database..." : "Finish Registration"}
         </button>
 
-        <button onClick={onBack} type="button" className="text-sm text-[#004E89] underline block mx-auto hover:text-[#1A659E]">
+        <Link 
+          href="/" 
+          className="text-sm text-white underline block mx-auto hover:text-yellow-300 text-center"
+        >
           Back to Welcome
-        </button>
+        </Link>
       </form>
     </>
   );

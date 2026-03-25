@@ -20,7 +20,7 @@ export default function AuthButtons() {
             boxShadow: "0 8px 20px rgba(239, 162, 9, 0.25)",
           }}
         >
-          Sign in
+          SIGN IN
         </button>
       </Link>
 
@@ -39,7 +39,7 @@ export default function AuthButtons() {
             boxShadow: "0 8px 20px rgba(223, 175, 91, 0.25)",
           }}
         >
-          Create account
+          REGISTER
         </button>
       </Link>
     </>

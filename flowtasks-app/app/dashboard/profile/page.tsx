@@ -1,196 +1,300 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+
+type UserProfile = {
+  username: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  googlePhoto: string | null;
+  localPhoto: string | null;
+};
 
 export default function ProfilePage() {
-  const [user, setUser] = useState({
+  const [user, setUser] = useState<UserProfile>({
     username: "sweep",
     firstName: "Gabriela",
     lastName: "Rivera",
     email: "gabriela@email.com",
+    googlePhoto: null,
+    localPhoto: null,
   });
 
+  const [originalUser, setOriginalUser] = useState<UserProfile>({
+    username: "sweep",
+    firstName: "Gabriela",
+    lastName: "Rivera",
+    email: "gabriela@email.com",
+    googlePhoto: null,
+    localPhoto: null,
+  });
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const displayedPhoto = user.localPhoto || user.googlePhoto || null;
+
+  const inputStyle = {
+    width: "100%",
+    padding: "12px 14px",
+    borderRadius: "10px",
+    border: "1px solid #374151",
+    backgroundColor: "#0f172a",
+    color: "white",
+    boxSizing: "border-box" as const,
+    opacity: isEditing ? 1 : 0.75,
+  };
+
+  const labelStyle = {
+    display: "block",
+    marginBottom: "6px",
+    fontWeight: "bold",
+  };
+
+  const handleChange = (field: keyof UserProfile, value: string) => {
+    setUser((prev) => {
+      const updated = { ...prev, [field]: value };
+      setHasChanges(true);
+      return updated;
+    });
+  };
+
+  const handlePhotoClick = () => {
+    if (!isEditing) return;
+    fileInputRef.current?.click();
+  };
+
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const imageUrl = URL.createObjectURL(file);
+
+    setUser((prev) => ({
+      ...prev,
+      localPhoto: imageUrl,
+    }));
+    setHasChanges(true);
+  };
+
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleSave = () => {
+    // backend
+
+    setOriginalUser(user);
+    setHasChanges(false);
+    setIsEditing(false);
+
+    console.log("Perfil guardado:", user);
+  };
+
+  const handleCancel = () => {
+    setUser(originalUser);
+    setHasChanges(false);
+    setIsEditing(false);
+  };
+
   return (
-    <>
-      <section
+    <section
+      style={{
+        flex: 1,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "flex-start",
+        padding: "40px",
+      }}
+    >
+      <div
         style={{
-          flex: 1,
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "flex-start",
-          padding: "40px",
+          width: "100%",
+          maxWidth: "480px",
+          padding: "36px 28px",
+          borderRadius: "24px",
+          backgroundColor: "rgba(213, 221, 238, 0.20)",
+          border: "1px solid rgba(255,255,255,0.10)",
+          boxShadow: "0 20px 50px rgba(21, 17, 17, 0.35)",
+          backdropFilter: "blur(8px)",
         }}
       >
-        <div
+        <h1
           style={{
-            width: "100%",
-            maxWidth: "720px",
-            backgroundColor: "#111827",
-            border: "1px solid #1f2937",
-            borderRadius: "16px",
-            padding: "32px",
-            boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
+            margin: "0 0 24px 0",
+            fontSize: "32px",
+            textAlign: "center",
           }}
         >
-          <h1
+          PROFILE
+        </h1>
+
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "20px",
+          }}
+        >
+          <div
+            onClick={handlePhotoClick}
             style={{
-              margin: "0 0 24px 0",
-              fontSize: "32px",
-              textAlign: "center",
+              width: "140px",
+              height: "140px",
+              borderRadius: "16px",
+              border: "1px solid #374151",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              backgroundColor: "#0f172a",
+              color: "#9ca3af",
+              fontSize: "16px",
+              overflow: "hidden",
+              cursor: isEditing ? "pointer" : "default",
+              position: "relative",
             }}
           >
-            Profile
-          </h1>
+            {displayedPhoto ? (
+              <img
+                src={displayedPhoto}
+                alt="Profile"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                }}
+              />
+            ) : (
+              <span>{isEditing ? "Upload photo" : "No photo"}</span>
+            )}
+          </div>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handlePhotoUpload}
+            style={{ display: "none" }}
+          />
+
+          <div
+            style={{
+              width: "100%",
+              display: "grid",
+              gridTemplateColumns: "1fr",
+              gap: "16px",
+              marginTop: "8px",
+            }}
+          >
+            <div>
+              <label style={labelStyle}>User Name</label>
+              <input
+                type="text"
+                value={user.username}
+                disabled={!isEditing}
+                onChange={(e) => handleChange("username", e.target.value)}
+                style={inputStyle}
+              />
+            </div>
+
+            <div>
+              <label style={labelStyle}>Name</label>
+              <input
+                type="text"
+                value={user.firstName}
+                disabled={!isEditing}
+                onChange={(e) => handleChange("firstName", e.target.value)}
+                style={inputStyle}
+              />
+            </div>
+
+            <div>
+              <label style={labelStyle}>Last Name</label>
+              <input
+                type="text"
+                value={user.lastName}
+                disabled={!isEditing}
+                onChange={(e) => handleChange("lastName", e.target.value)}
+                style={inputStyle}
+              />
+            </div>
+
+            <div>
+              <label style={labelStyle}>Email</label>
+              <input
+                type="email"
+                value={user.email}
+                disabled={!isEditing}
+                onChange={(e) => handleChange("email", e.target.value)}
+                style={inputStyle}
+              />
+            </div>
+          </div>
 
           <div
             style={{
               display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "20px",
+              gap: "12px",
+              marginTop: "12px",
             }}
           >
-            <div
-              style={{
-                width: "130px",
-                height: "130px",
-                borderRadius: "12px",
-                border: "1px solid #374151",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                backgroundColor: "#0f172a",
-                color: "#9ca3af",
-                fontSize: "18px",
-              }}
-            >
-              Photo
-            </div>
+            {!isEditing && (
+              <button
+                onClick={handleEdit}
+                style={{
+                  padding: "12px 20px",
+                  borderRadius: "10px",
+                  border: "none",
+                  backgroundColor: "#ff6b35",
+                  color: "white",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                Edit Profile
+              </button>
+            )}
 
-            <div
-              style={{
-                width: "100%",
-                display: "grid",
-                gridTemplateColumns: "1fr",
-                gap: "16px",
-                marginTop: "8px",
-              }}
-            >
-              <div>
-                <label
+            {isEditing && hasChanges && (
+              <>
+                <button
+                  onClick={handleSave}
                   style={{
-                    display: "block",
-                    marginBottom: "6px",
-                    fontWeight: "bold",
+                    padding: "12px 20px",
+                    borderRadius: "10px",
+                    border: "none",
+                    backgroundColor: "#ff6b35",
+                    color: "white",
+                    fontWeight: 600,
+                    cursor: "pointer",
                   }}
                 >
-                  User Name
-                </label>
-                <input
-                  type="text"
-                  value={user.username}
-                  onChange={(e) =>
-                    setUser({ ...user, username: e.target.value })
-                  }
+                  Save Changes
+                </button>
+
+                <button
+                  onClick={handleCancel}
                   style={{
-                    width: "100%",
-                    padding: "12px 14px",
+                    padding: "12px 20px",
                     borderRadius: "10px",
                     border: "1px solid #374151",
-                    backgroundColor: "#0f172a",
+                    backgroundColor: "transparent",
                     color: "white",
-                    boxSizing: "border-box",
-                  }}
-                />
-              </div>
-
-              <div>
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: "6px",
-                    fontWeight: "bold",
+                    fontWeight: 600,
+                    cursor: "pointer",
                   }}
                 >
-                  Name
-                </label>
-                <input
-                  type="text"
-                  value={user.firstName}
-                  onChange={(e) =>
-                    setUser({ ...user, firstName: e.target.value })
-                  }
-                  style={{
-                    width: "100%",
-                    padding: "12px 14px",
-                    borderRadius: "10px",
-                    border: "1px solid #374151",
-                    backgroundColor: "#0f172a",
-                    color: "white",
-                    boxSizing: "border-box",
-                  }}
-                />
-              </div>
-
-              <div>
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: "6px",
-                    fontWeight: "bold",
-                  }}
-                >
-                  Last Name
-                </label>
-                <input
-                  type="text"
-                  value={user.lastName}
-                  onChange={(e) =>
-                    setUser({ ...user, lastName: e.target.value })
-                  }
-                  style={{
-                    width: "100%",
-                    padding: "12px 14px",
-                    borderRadius: "10px",
-                    border: "1px solid #374151",
-                    backgroundColor: "#0f172a",
-                    color: "white",
-                    boxSizing: "border-box",
-                  }}
-                />
-              </div>
-
-              <div>
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: "6px",
-                    fontWeight: "bold",
-                  }}
-                >
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={user.email}
-                  onChange={(e) =>
-                    setUser({ ...user, email: e.target.value })
-                  }
-                  style={{
-                    width: "100%",
-                    padding: "12px 14px",
-                    borderRadius: "10px",
-                    border: "1px solid #374151",
-                    backgroundColor: "#0f172a",
-                    color: "white",
-                    boxSizing: "border-box",
-                  }}
-                />
-              </div>
-            </div>
+                  Cancel
+                </button>
+              </>
+            )}
           </div>
         </div>
-      </section>
-    </>
+      </div>
+    </section>
   );
 }

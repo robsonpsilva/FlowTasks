@@ -14,8 +14,21 @@ export const userService = {
     try {
       // Selecionamos apenas campos necessários, omitindo o password_hash por segurança
       const query = `
-        SELECT id, name, email, created_at, updated_at 
-        FROM public.users 
+        SELECT 
+          u.id, 
+          u.name, 
+          u.email, 
+          u.external_uid,
+          u.password_hash as password,
+          u.created_at,
+          u.updated_at,
+          r.name as role_name,
+          r.id as roleId,
+          ap.name as auth_provider_name
+        FROM public.users u
+        LEFT JOIN public.roles_users ur ON u.id = ur.users_id
+        LEFT JOIN public.roles r ON ur.roles_id = r.id
+        LEFT JOIN public.auth_providers ap ON u.provider_id = ap.id
         ORDER BY created_at DESC
       `;
       

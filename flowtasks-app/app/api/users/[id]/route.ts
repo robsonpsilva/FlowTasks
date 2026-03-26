@@ -1,13 +1,14 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { userService } from '@/app/services/userService';
 
 /**
- * Interface for typing dynamic route parameters.
+ * Interface ajustada para Next.js 15+.
+ * O 'params' deve ser uma Promise para satisfazer o contrato 'RouteHandlerConfig'.
  */
-interface RouteParams {
-  params: {
+interface RouteContext {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 /**
@@ -46,13 +47,9 @@ interface RouteParams {
  *       500:
  *         description: Internal error while processing the update.
  */
-
-
-export async function PUT(request: Request, { params }: RouteParams) {
+export async function PUT(request: NextRequest, { params }: RouteContext) {
   try {
-    // RESOLUÇÃO DO ERRO: Unwrapping a Promise do params
-    const { id } = await params; 
-    
+    const { id } = await params;
     const body = await request.json();
     const updatedUser = await userService.update(id, body);
 
@@ -89,13 +86,9 @@ export async function PUT(request: Request, { params }: RouteParams) {
  *       500:
  *         description: Error while attempting to delete the record.
  */
-
-
-export async function DELETE(request: Request, { params }: RouteParams) {
+export async function DELETE(request: NextRequest, { params }: RouteContext) {
   try {
-    // RESOLUÇÃO DO ERRO: Unwrapping a Promise do params
     const { id } = await params;
-
     const success = await userService.delete(id);
 
     if (!success) {
@@ -145,11 +138,9 @@ export async function DELETE(request: Request, { params }: RouteParams) {
  *       500:
  *         description: Server error.
  */
-
-
-export async function GET(request: Request, { params }: RouteParams) {
+export async function GET(request: NextRequest, { params }: RouteContext) {
   try {
-    const { id } = await params; // Unwrapping para Next.js 15
+    const { id } = await params;
     const profile = await userService.findProfile(id);
 
     if (!profile) {
@@ -159,10 +150,10 @@ export async function GET(request: Request, { params }: RouteParams) {
     return NextResponse.json(profile, { status: 200 });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
-    console.error(`API Error at GET /api/users/${(await params).id}:`, message);
-    
+    console.error(`API Error at GET /api/users/[id]:`, message);
+
     return NextResponse.json(
-      { error: 'Failed to fetch profile', details: message }, 
+      { error: 'Failed to fetch profile', details: message },
       { status: 500 }
     );
   }

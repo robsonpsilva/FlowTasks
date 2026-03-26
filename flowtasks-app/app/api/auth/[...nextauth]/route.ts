@@ -47,7 +47,7 @@ const authOptions = {
           email: user.email,
           role: user.role_name,
           provider: "credentials",
-          picture: null, // login local não tem foto
+          picture: user.image || undefined, // login local não tem foto
         };
       }
     }),

@@ -1,15 +1,15 @@
 "use client";
-import { useState } from "react";
+import { useState, Suspense } from "react"; // Adicionado Suspense
 import { useSearchParams, useRouter } from "next/navigation";
 import LoginOptions from "@/app/ui/components/auth/LoginOptions";
 import CreateAccountFlow from "@/app/ui/components/auth/CreateAccountFlow";
 import LoginForm from "@/app/ui/components/auth/LoginForm";
 
-export default function WelcomePage() {
+// 1. Transformamos o componente original em um componente interno
+function WelcomeContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Lê o parâmetro "mode" da URL (?mode=email ou ?mode=signup)
   const mode = searchParams.get("mode");
 
   const [view, setView] = useState<"login_options" | "email_login" | "signup">(
@@ -40,5 +40,18 @@ export default function WelcomePage() {
         </div>
       </section>
     </main>
+  );
+}
+
+// 2. O export padrão agora envolve o conteúdo em Suspense
+export default function WelcomePage() {
+  return (
+    <Suspense fallback={
+      <div style={{ minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center", background: "#004e89", color: "white" }}>
+        Loading...
+      </div>
+    }>
+      <WelcomeContent />
+    </Suspense>
   );
 }

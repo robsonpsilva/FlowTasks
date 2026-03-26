@@ -60,9 +60,9 @@ export default function ProfilePage() {
               alignItems: "center",
             }}
           >
-            {user?.picture ? (
+            {user?.image ? (
               <img
-                src={user.picture}
+                src={user.image}
                 alt="User photo"
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />

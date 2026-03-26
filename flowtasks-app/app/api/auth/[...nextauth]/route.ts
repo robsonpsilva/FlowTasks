@@ -8,7 +8,6 @@ import { userService } from "@/app/services/userService";
 import bcrypt from "bcryptjs";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  // Configurações de confiança para o ambiente do Render
   trustHost: true, 
   secret: process.env.AUTH_SECRET,
   
@@ -43,21 +42,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           throw new Error("Selected role does not match your account profile.");
         }
 
-        // Retornamos o objeto que agora bate com a sua interface User estendida no .d.ts
         return {
           id: String(user.id),
           name: user.name,
           email: user.email,
           role: user.role_name,
           provider: "credentials",
-          image: user.image || undefined,
+          image: user.image || undefined, // Foto do banco local
         } as User;
       }
     }),
   ],
   callbacks: {
     async signIn({ user, account }: { user: User; account?: Account | null }) {
-      // O 'account?' resolve o erro de 'undefined' que o TS apontou
       if (account?.provider === "google") {
         try {
           console.log("🔵 [SignIn] Syncing Google user...");
@@ -66,13 +63,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             email: user.email as string,
             provider_id: 1,
             external_uid: account.providerAccountId,
+            // Dica: Se o seu serviço aceitar, passe user.image aqui para atualizar no banco
           });
           
           user.id = String(dbUser.id);
           return true;
         } catch (error) {
           console.error("❌ [SignIn] Social Sync Error:", error);
-          return false; // Aqui o NextAuth redireciona para Access Denied
+          return false;
         }
       }
       return true;
@@ -80,24 +78,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
     async jwt({ token, user }: { token: JWT; user?: User }) {
       if (user) {
-        // Mapeamento direto e seguro graças ao seu next-auth.d.ts
         token.userId = user.id;
         token.role = user.role ?? "";
-        token.email = user.email;
+        token.email = user.email ?? "";
         token.name = user.name ?? "";
         token.provider = user.provider;
+        // PERSISTÊNCIA DA FOTO:
+        // O Google envia em user.image. Salvamos no token.picture.
+        token.picture = user.image ?? undefined; 
       }
       return token;
     },
 
     async session({ session, token }: { session: Session; token: JWT }) {
       if (session.user) {
-        // O TS agora sabe que esses campos existem no session.user
         session.user.id = token.userId;
         session.user.role = token.role;
         session.user.email = token.email;
         session.user.name = token.name;
         session.user.provider = token.provider;
+        session.user.image = token.picture;
       }
       return session;
     },

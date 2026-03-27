@@ -150,16 +150,28 @@ export const userService = {
   },
 
   /**
-   * Deletes a user from the system.
+  /**
+   * Deletes a user and their relationships (Atomic Operation).
    */
   async delete(id: string) {
+    const client = await pool.connect();
     try {
-      const query = 'DELETE FROM public.users WHERE id = $1';
-      const result = await pool.query(query, [id]);
+      await client.query('BEGIN');
+
+      // 1. Remove da tabela de relacionamento primeiro (Resolve o erro 23503)
+      await client.query('DELETE FROM public.roles_users WHERE users_id = $1', [id]);
+
+      // 2. Remove o usuário
+      const result = await client.query('DELETE FROM public.users WHERE id = $1', [id]);
+
+      await client.query('COMMIT');
       return (result.rowCount ?? 0) > 0;
     } catch (error) {
+      await client.query('ROLLBACK');
       console.error(`Error at userService.delete for ID ${id}:`, error);
-      throw new Error('Database operation failed while deleting user.');
+      throw error;
+    } finally {
+      client.release();
     }
   },
 

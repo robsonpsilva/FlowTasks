@@ -6,139 +6,107 @@ interface UserToEdit {
   name: string;
   email: string;
   role_id?: string | number;
-  role?: { id: string | number };
   role_name?: string;
 }
 
-export default function CreateAccountFlow({ 
-  onBack, 
-  userToEdit 
-}: { 
-  onBack: () => void; 
-  userToEdit?: UserToEdit | null 
-}) {
+export default function CreateAccountFlow({ onBack, userToEdit }: { onBack: () => void; userToEdit?: UserToEdit | null }) {
   const isEdit = !!userToEdit;
 
   const resolveRoleId = (user: UserToEdit | null | undefined): string => {
-    if (!user) return "1"; 
-    const id = user.role_id || user.role?.id;
-    if (id) return String(id);
-    if (user.role_name?.toUpperCase() === "ADMIN") return "2";
-    return "1"; 
+    if (!user) return "1"; // Default: MEMBER
+    if (user.role_id) return String(user.role_id);
+    return user.role_name?.toUpperCase() === "ADMIN" ? "2" : "1";
   };
 
   const [formData, setFormData] = useState({ 
     name: userToEdit?.name || "", 
     email: userToEdit?.email || "", 
-    password: "",
-    role_id: resolveRoleId(userToEdit)
+    password: "", 
+    role_id: resolveRoleId(userToEdit) 
   });
 
   const [isLoading, setIsLoading] = useState(false);
-  const [banner, setBanner] = useState({ show: false, msg: "", type: "success" as "success" | "error" });
-
-  useEffect(() => {
-    if (userToEdit) {
-      setFormData({
-        name: userToEdit.name,
-        email: userToEdit.email,
-        password: "",
-        role_id: resolveRoleId(userToEdit)
-      });
-    }
-  }, [userToEdit]);
+  const [errorFields, setErrorFields] = useState<Record<string, boolean>>({});
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (errorFields[name]) setErrorFields(prev => ({ ...prev, [name]: false }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     
+    // Validação Sênior: Senha obrigatória apenas no cadastro novo
+    const errors: Record<string, boolean> = {
+      name: !formData.name.trim(),
+      email: !formData.email.trim(),
+      password: !isEdit && !formData.password.trim()
+    };
+
+    if (Object.values(errors).some(v => v)) {
+      setErrorFields(errors);
+      return;
+    }
+
+    setIsLoading(true);
     try {
       const url = isEdit ? `/api/users/${userToEdit.id}` : "/api/users";
       const method = isEdit ? "PUT" : "POST";
 
-      // 1. Atualizar Perfil (Nome/Email)
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          ...(formData.password && { password: formData.password }),
-          provider_id: 2,
+          ...formData,
+          provider_id: 2, // Default credentials provider
         }),
       });
 
-      const userData = await res.json();
-      if (!res.ok) throw new Error(userData.details || "Failed to save user");
-
-      // 2. ATUALIZAR ROLE NO BANCO (O passo que estava faltando)
-      // Usamos o ID do userToEdit ou o ID retornado na criação
-      const targetUserId = isEdit ? userToEdit.id : userData.id;
-
-      const roleRes = await fetch("/api/users/roles", {
-        method: "POST", // Geralmente POST ou PUT para gerenciar atribuição
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: String(targetUserId),
-          roleId: formData.role_id // "1" ou "2" do seu combo
-        }),
-      });
-
-      if (!roleRes.ok) throw new Error("User saved, but failed to update role");
-
-      setBanner({ show: true, msg: "User and Role updated!", type: "success" });
-      setTimeout(onBack, 1500);
-    } catch (error) {
-      setBanner({ show: true, msg: error instanceof Error ? error.message : "Error", type: "error" });
+      if (!res.ok) throw new Error("Failed to save");
+      onBack();
+    } catch (err) {
+      alert("Error saving user data");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full space-y-5">
-      <h2 className="text-2xl font-bold text-white text-center">
-        {isEdit ? "Edit User Profile" : "Create Account"}
+    <form onSubmit={handleSubmit} className="w-full space-y-4">
+      <h2 className="text-2xl font-bold text-white text-center mb-4">
+        {isEdit ? "Edit Profile" : "Create New User"}
       </h2>
       
-      <div className="flex flex-col gap-1.5">
+      <div className="space-y-1.5">
         <label className="text-sm font-bold text-white">Full Name</label>
-        <input 
-          name="name" className="w-full p-4 rounded-xl bg-white text-black"
-          value={formData.name} onChange={handleChange}
-        />
+        <input name="name" value={formData.name} onChange={handleChange} className={`w-full p-4 rounded-xl bg-white text-black border-2 ${errorFields.name ? 'border-red-500' : 'border-transparent'}`} />
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-bold text-white">Email</label>
-        <input 
-          name="email" className="w-full p-4 rounded-xl bg-white text-black"
-          value={formData.email} onChange={handleChange}
-        />
+      <div className="space-y-1.5">
+        <label className="text-sm font-bold text-white">Email Address</label>
+        <input name="email" type="email" value={formData.email} onChange={handleChange} className={`w-full p-4 rounded-xl bg-white text-black border-2 ${errorFields.email ? 'border-red-500' : 'border-transparent'}`} />
       </div>
 
-      <div className="flex flex-col gap-1.5">
+      <div className="space-y-1.5">
+        <label className="text-sm font-bold text-white">
+          {isEdit ? "New Password (optional)" : "Password"}
+        </label>
+        <input name="password" type="password" value={formData.password} onChange={handleChange} placeholder={isEdit ? "••••••••" : "Min. 6 characters"} className={`w-full p-4 rounded-xl bg-white text-black border-2 ${errorFields.password ? 'border-red-500' : 'border-transparent'}`} />
+      </div>
+
+      <div className="space-y-1.5">
         <label className="text-sm font-bold text-white">Account Role</label>
-        <select 
-          name="role_id"
-          className="w-full p-4 rounded-xl bg-white text-black font-medium border-2 border-[#F7C59F]"
-          value={formData.role_id} 
-          onChange={handleChange}
-        >
+        <select name="role_id" value={formData.role_id} onChange={handleChange} className="w-full p-4 rounded-xl bg-white text-black font-medium border-2 border-[#F7C59F]">
           <option value="1">MEMBER</option>
           <option value="2">ADMIN</option>
         </select>
       </div>
 
-      <div className="flex gap-3 pt-2">
-        <button type="button" onClick={onBack} className="flex-1 py-4 bg-gray-600 text-white rounded-xl">Cancel</button>
-        <button type="submit" disabled={isLoading} className="flex-[2] py-4 bg-[#FF6B35] text-white font-bold rounded-xl shadow-lg transition-transform active:scale-95">
-          {isLoading ? "Saving..." : "Save Changes"}
+      <div className="flex gap-3 pt-4">
+        <button type="button" onClick={onBack} className="flex-1 py-4 bg-gray-600 text-white rounded-xl font-bold">Cancel</button>
+        <button type="submit" disabled={isLoading} className="flex-[2] py-4 bg-[#FF6B35] text-white font-bold rounded-xl transition-transform active:scale-95">
+          {isLoading ? "Saving..." : isEdit ? "Update User" : "Create User"}
         </button>
       </div>
     </form>

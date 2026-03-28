@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import Button from "@/app/ui/components/button";
 import Modal from "@/app/ui/components/modal";
+import AddTaskForm from "@/app/ui/components/tasksForms/AddTaskForm";
+import styles from '@/app/ui/components/componentStyles/tasksPage.module.css';
+
 
 export default function TasksPage() {
   const [open, setOpen] = useState(false);
@@ -21,6 +24,11 @@ export default function TasksPage() {
   useEffect(() => {
     loadTasks();
   }, []);
+
+  function handleTaskCreated(task: any) {
+    console.log('New task:', task);
+    setOpen(false); // ✅ close modal after success
+  }
 
   // CREATE TASK
   async function saveTask() {
@@ -66,13 +74,27 @@ export default function TasksPage() {
 
   return (
     <>
+
       <section style={{ flex: 1, padding: "20px" }}>
-        <p>This is the tasks page.</p>
-        <Button onClick={() => setOpen(true)}>Add Task</Button>
+        <h1 className={styles.pageTitle}>My Tasks</h1>
+        {/* <Button onClick={() => setOpen(true)}>Add Task</Button> */}
       </section>
 
       <div>
-        <p style={{ fontSize: 40 }}>Tasks (Temporary Header)</p>
+      <Button type="button" onClick={() => setOpen(true)} className={styles.newTaskbtn}>
+        + New Task
+      </Button>
+
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Create Task"
+      >
+        <AddTaskForm open={open} onTaskCreated={handleTaskCreated} />
+      </Modal>
+    </div>
+
+      <div>
         <ul style={{ marginTop: "10px" }}>
           {tasks.map((task) => (
             <li key={task.id}>
@@ -90,7 +112,7 @@ export default function TasksPage() {
         </ul>
       </div>
 
-      <Modal
+      {/* <Modal
         open={open}
         onClose={() => setOpen(false)}
         title="Create New Task"
@@ -106,7 +128,7 @@ export default function TasksPage() {
             {editingId ? "Update" : "Create"}
           </Button>
         </div>
-      </Modal>
+      </Modal> */}
     </>
   );
 }

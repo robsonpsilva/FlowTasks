@@ -37,7 +37,6 @@ export default function CreateAccountFlow({ onBack, userToEdit }: { onBack: () =
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validação Sênior: Senha obrigatória apenas no cadastro novo
     const errors: Record<string, boolean> = {
       name: !formData.name.trim(),
       email: !formData.email.trim(),

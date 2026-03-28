@@ -76,17 +76,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return true;
     },
 
-    async jwt({ token, user }: { token: JWT; user?: User }) {
+    
+    async jwt({ token, user, trigger, session }: { token: JWT; user?: User; trigger?: string; session?: any }) {
+      // 1. Carga inicial no Login
       if (user) {
         token.userId = user.id;
         token.role = user.role ?? "";
         token.email = user.email ?? "";
         token.name = user.name ?? "";
         token.provider = user.provider;
-        // PERSISTÊNCIA DA FOTO:
-        // O Google envia em user.image. Salvamos no token.picture.
         token.picture = user.image ?? undefined; 
       }
+
+      
+      if (trigger === "update" && session?.user?.image) {
+        console.log("🟢 [JWT] Atualizando imagem no token:", session.user.image);
+        token.picture = session.user.image;
+      }
+
       return token;
     },
 

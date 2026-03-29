@@ -1,3 +1,8 @@
+.addButtonContainer {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+}   
 .newTaskbtn {
 color: white;
 background-color: var(--secondary-color);
@@ -6,8 +11,7 @@ font-weight: 900;
 
 .newTaskbtn:hover {
     background-color: var(--tertiary-color); 
-    color: var(--primary-color);
-    
+    color: var(--secondary-color); 
 }
 
 .pageTitle {

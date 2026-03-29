@@ -1,0 +1,79 @@
+.container {
+  padding: 1rem;
+}
+
+/* TABLE */
+.table {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 0.25rem;
+  border-collapse: separate;  
+  border-spacing: 0;         
+  overflow: hidden;
+}
+
+/* HEADER */
+.header {
+  background-color: var(--primary-color); 
+  color: var(--secondary-color);
+}
+
+.column {
+  padding: 0.5rem; 
+  border: 1px solid #d1d5db;
+  text-align: center;
+  font-weight: 900;
+  font-size: var( --large-font);
+}
+
+/* BODY */
+
+.row {
+  text-align: center;
+}
+
+.cell {
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+}
+
+/* Actions container */
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.editButton {
+  background-color: #3b82f6; 
+}
+
+.deleteButton {
+  background-color: #ef4444;
+}
+
+.editButton:hover {
+  background-color: #2563eb; 
+}
+
+.deleteButton:hover {
+  background-color: #dc2626; 
+}
+
+/* PAGINATION */
+
+.pageButton {
+  padding: 0.25rem 0.75rem; 
+  background-color: var(--primary-color);
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+/* Disabled state (equivalente a disabled:opacity-50) */
+.pageButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

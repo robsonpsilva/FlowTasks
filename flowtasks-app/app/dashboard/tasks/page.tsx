@@ -5,6 +5,7 @@ import Button from "@/app/ui/components/button";
 import Modal from "@/app/ui/components/modal";
 import AddTaskForm from "@/app/ui/components/tasksForms/AddTaskForm";
 import styles from '@/app/ui/components/componentStyles/tasksPage.module.css';
+import TasksTable from "@/app/ui/components/tasksTable/TasksTable";
 
 
 export default function TasksPage() {
@@ -77,14 +78,14 @@ export default function TasksPage() {
 
       <section style={{ flex: 1, padding: "20px" }}>
         <h1 className={styles.pageTitle}>My Tasks</h1>
-        {/* <Button onClick={() => setOpen(true)}>Add Task</Button> */}
       </section>
 
-      <div>
+     <div className={styles.addButtonContainer}>
       <Button type="button" onClick={() => setOpen(true)} className={styles.newTaskbtn}>
         + New Task
       </Button>
-
+     </div>
+      
       <Modal
         open={open}
         onClose={() => setOpen(false)}
@@ -92,9 +93,12 @@ export default function TasksPage() {
       >
         <AddTaskForm open={open} onTaskCreated={handleTaskCreated} />
       </Modal>
-    </div>
 
-      <div>
+    <section style={{ flex: 1, padding: "20px" }}>
+       <TasksTable tasks={tasks} handleEdit={handleEdit} handleDelete={handleDelete} /> 
+    </section>
+
+      {/* <div>
         <ul style={{ marginTop: "10px" }}>
           {tasks.map((task) => (
             <li key={task.id}>
@@ -110,9 +114,13 @@ export default function TasksPage() {
             </li>
           ))}
         </ul>
-      </div>
+      </div> */}
+    </>
+  );
+}
 
-      {/* <Modal
+
+{/* <Modal
         open={open}
         onClose={() => setOpen(false)}
         title="Create New Task"
@@ -129,6 +137,3 @@ export default function TasksPage() {
           </Button>
         </div>
       </Modal> */}
-    </>
-  );
-}

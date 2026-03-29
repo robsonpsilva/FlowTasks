@@ -51,13 +51,12 @@
 .deleteButton {
   background-color: #ef4444;
 }
+.deleteButton:hover {
+  background-color: #dc2626; 
+}
 
 .editButton:hover {
   background-color: #2563eb; 
-}
-
-.deleteButton:hover {
-  background-color: #dc2626; 
 }
 
 /* PAGINATION */

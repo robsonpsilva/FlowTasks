@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Button from "@/app/ui/components/button";
 import Modal from "@/app/ui/components/modal";
 import AddTaskForm from "@/app/ui/components/tasksForms/AddTaskForm";
@@ -13,22 +13,23 @@ export default function TasksPage() {
   const [tasks, setTasks] = useState<any[]>([]);
   const [title, setTitle] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [taskToDelete, setTaskToDelete] = useState<number | null>(null);
 
   // Fetch tasks
-  async function loadTasks() {
-    const res = await fetch("/api/tasks");
-    const data = await res.json();
-    setTasks(data);
-  }
+  const loadTasks = useCallback(async () => {
+  const res = await fetch("/api/tasks");
+  const data = await res.json();
+  setTasks(data);
+}, []);
 
   // Load on page load
   useEffect(() => {
     loadTasks();
-  }, []);
+  }, [loadTasks]);
 
   function handleTaskCreated(task: any) {
     console.log('New task:', task);
-    setOpen(false); // ✅ close modal after success
+    setOpen(false); 
   }
 
   // CREATE TASK
@@ -59,19 +60,32 @@ export default function TasksPage() {
 
   // EDIT (open modal with existing data)
   function handleEdit(task: any) {
-    setTitle(task.title);     // reuse your existing state
-    setEditingId(task.id);    // new state
+    setTitle(task.title);     
+    setEditingId(task.id);   
     setOpen(true);
   }
+  
 
   // DELETE
-  async function handleDelete(id: number) {
-    await fetch(`/api/tasks/${id}`, {
-      method: "DELETE",
-    });
+  function handleDeleteClick(id: number) {
+    setTaskToDelete(id); // open modal
+}
 
-    loadTasks(); // refresh
-  }
+function cancelDelete() {
+  setTaskToDelete(null);
+}
+
+async function confirmDelete() {
+  if (!taskToDelete) return;
+
+  await fetch(`/api/tasks/${taskToDelete}`, {
+    method: "DELETE",
+  });
+
+  setTaskToDelete(null); // close modal
+  loadTasks();
+}
+
 
   return (
     <>
@@ -80,6 +94,7 @@ export default function TasksPage() {
         <h1 className={styles.pageTitle}>My Tasks</h1>
       </section>
 
+{/* Create confirmation modal */}
      <div className={styles.addButtonContainer}>
       <Button type="button" onClick={() => setOpen(true)} className={styles.newTaskbtn}>
         + New Task
@@ -89,51 +104,33 @@ export default function TasksPage() {
       <Modal
         open={open}
         onClose={() => setOpen(false)}
-        title="Create Task"
+        title={editingId ? "Edit Task" : "Create Task"}
       >
         <AddTaskForm open={open} onTaskCreated={handleTaskCreated} />
       </Modal>
 
+{/* Delete confirmation modal */}
+{taskToDelete !== null && (
+      <Modal
+        open={taskToDelete !== null}
+        onClose={cancelDelete}
+        title="Confirm Delete"
+      >
+      <p>Are you sure you want to delete this task?</p>
+
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+        <Button onClick={cancelDelete}>Cancel</Button>
+        <Button onClick={confirmDelete} className={styles.deleteButton}>
+          Delete
+        </Button>
+      </div>
+    </Modal>
+    )}
+
     <section style={{ flex: 1, padding: "20px" }}>
-       <TasksTable tasks={tasks} handleEdit={handleEdit} handleDelete={handleDelete} /> 
+       <TasksTable tasks={tasks} handleEdit={handleEdit} handleDelete={handleDeleteClick} /> 
     </section>
 
-      {/* <div>
-        <ul style={{ marginTop: "10px" }}>
-          {tasks.map((task) => (
-            <li key={task.id}>
-              {task.title} - {task.status}
-
-              <Button onClick={() => handleEdit(task)}>
-                Edit
-              </Button>
-
-              <Button onClick={() => handleDelete(task.id)}>
-                Delete
-              </Button>
-            </li>
-          ))}
-        </ul>
-      </div> */}
     </>
   );
 }
-
-
-{/* <Modal
-        open={open}
-        onClose={() => setOpen(false)}
-        title="Create New Task"
-      >
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Task title"
-          />
-
-          <Button onClick={saveTask}>
-            {editingId ? "Update" : "Create"}
-          </Button>
-        </div>
-      </Modal> */}

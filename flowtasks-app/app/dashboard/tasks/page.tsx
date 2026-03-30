@@ -3,16 +3,16 @@
 import { useEffect, useState, useCallback } from "react";
 import Button from "@/app/ui/components/button";
 import Modal from "@/app/ui/components/modal";
-import AddTaskForm from "@/app/ui/components/tasksForms/AddTaskForm";
+import TaskForm from "@/app/ui/components/tasksForms/TaskForm";
 import styles from '@/app/ui/components/componentStyles/tasksPage.module.css';
 import TasksTable from "@/app/ui/components/tasksTable/TasksTable";
+import { TaskWithSchedule } from "@/app/lib/formsHelper";
 
 
 export default function TasksPage() {
   const [open, setOpen] = useState(false);
   const [tasks, setTasks] = useState<any[]>([]);
-  const [title, setTitle] = useState("");
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingTask, setEditingTask] = useState<TaskWithSchedule | null>(null);
   const [taskToDelete, setTaskToDelete] = useState<number | null>(null);
 
   // Fetch tasks
@@ -27,41 +27,17 @@ export default function TasksPage() {
     loadTasks();
   }, [loadTasks]);
 
-  function handleTaskCreated(task: any) {
+  function handleTaskSaved(task: any) {
     console.log('New task:', task);
     setOpen(false); 
+    setEditingTask(null);
+    loadTasks();
   }
 
-  // CREATE TASK
-  async function saveTask() {
-  if (!title) return;
-
-  if (editingId) {
-    // UPDATE
-    await fetch(`/api/tasks/${editingId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title }),
-    });
-  } else {
-    // CREATE
-    await fetch("/api/tasks", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title }),
-    });
-  }
-
-  setTitle("");
-  setEditingId(null);
-  setOpen(false);
-  loadTasks();
-}
 
   // EDIT (open modal with existing data)
   function handleEdit(task: any) {
-    setTitle(task.title);     
-    setEditingId(task.id);   
+    setEditingTask(task);
     setOpen(true);
   }
   
@@ -96,17 +72,28 @@ async function confirmDelete() {
 
 {/* Create confirmation modal */}
      <div className={styles.addButtonContainer}>
-      <Button type="button" onClick={() => setOpen(true)} className={styles.newTaskbtn}>
+      <Button type="button" onClick={() => {
+            setEditingTask(null); 
+            setOpen(true);
+            }} className={styles.newTaskbtn}>
         + New Task
       </Button>
      </div>
       
       <Modal
         open={open}
-        onClose={() => setOpen(false)}
-        title={editingId ? "Edit Task" : "Create Task"}
+        onClose={() => {
+            setOpen(false);
+            setEditingTask(null);
+            }}
+        title={editingTask ? "Edit Task" : "Create Task"}
       >
-        <AddTaskForm open={open} onTaskCreated={handleTaskCreated} />
+         <TaskForm
+            mode={editingTask ? 'edit' : 'create'}
+            initialData={editingTask}
+            open={open}
+            onSuccess={handleTaskSaved}
+          />
       </Modal>
 
 {/* Delete confirmation modal */}

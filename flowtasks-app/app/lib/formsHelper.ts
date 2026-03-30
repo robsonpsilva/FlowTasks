@@ -33,8 +33,20 @@ export type ScheduleApiPayload = {
   end_date?: string;
 };
 
-export function formatDate(date: Date) {
-  return date.toISOString().split('T')[0];
+export type TaskWithSchedule = {
+  id: number;
+  title: string;
+  description: string;
+  status: "PENDING" | "IN_PROGRESS" | "DONE";
+  priority: "LOW" | "MEDIUM" | "HIGH";
+  is_active: boolean;
+  category_id: number;
+  schedule: ScheduleApiPayload;
+};
+
+export function formatDate(date: string | Date): string {
+  const d = new Date(date);
+  return d.toISOString().split('T')[0];
 }
 export const days: Day[] = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
 export const today = new Date();
@@ -56,3 +68,7 @@ export function buildTaskPayload(
     },
   };
 }
+
+export const reverseDayMap: Record<number, Day> = Object.fromEntries(
+  Object.entries(dayMap).map(([key, value]) => [value, key as Day])
+);

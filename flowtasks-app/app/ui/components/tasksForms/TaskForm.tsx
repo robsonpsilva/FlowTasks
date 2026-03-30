@@ -1,23 +1,31 @@
 'use client';
 import styles from '../componentStyles/addForm.module.css';
 import { useState, ChangeEvent, FormEvent, useEffect } from 'react';
-import {dayMap, buildTaskPayload, TaskPayload, SchedulePayload, ScheduleApiPayload, formatDate, days, today} from '@/app/lib/formsHelper';
+import {
+  dayMap, 
+  buildTaskPayload, 
+  TaskPayload, 
+  SchedulePayload, 
+  formatDate, 
+  days, 
+  today, 
+  reverseDayMap, 
+TaskWithSchedule} from '@/app/lib/formsHelper';
 import {
   handleTaskChange,
   handleScheduleChange,
   toggleDayHandler,
 } from '@/app/lib/formHandlers';
 
-type TaskWithSchedulePayload = TaskPayload & {
-  schedule: ScheduleApiPayload; 
-};
 
 type Props = {
-  onTaskCreated?: (task: any) => void;
+  mode: 'create' | 'edit';
+  initialData?: TaskWithSchedule | null;
+  onSuccess?: (task: any) => void;
   open: boolean;
 };
 
-export default function AddTaskForm({ onTaskCreated, open }: Props) {
+export default function AddTaskForm({ open, initialData, onSuccess, mode}: Props) {
 // Form state
   const [formData, setFormData] = useState<TaskPayload>({
     title: '',
@@ -37,9 +45,36 @@ export default function AddTaskForm({ onTaskCreated, open }: Props) {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [minStartDate, setMinStartDate] = useState('');
+  const [maxEndDate, setMaxEndDate] = useState('');
 
   useEffect(() => {
-  if (!open) {
+  if (open) {
+    if (mode === 'edit' && initialData?.schedule) {
+      const mappedDays = (initialData.schedule.days_of_week ?? []).map(
+            (dayNumber: number) => reverseDayMap[dayNumber]
+          );
+      setFormData({
+        title: initialData.title,
+        description: initialData.description,
+        status: initialData.status,
+        priority: initialData.priority,
+        is_active: initialData.is_active,
+        category_id: initialData.category_id,
+      });
+
+      setSchedule({
+        frequency: initialData.schedule.frequency,
+        days_of_week: mappedDays,
+        start_date: initialData.schedule.start_date
+                  ? formatDate(initialData.schedule.start_date)
+                  : '',
+        end_date: initialData.schedule.end_date
+                ? formatDate(initialData.schedule.end_date)
+                : '',
+      });
+    }
+  } else {
     // Reset everything when modal closes
     setFormData({
       title: '',
@@ -59,14 +94,27 @@ export default function AddTaskForm({ onTaskCreated, open }: Props) {
 
     setError(null);
   }
-}, [open]);
+}, [open, mode, initialData]);
+
 
 //Conditions for date inputs
-const minStartDate = formatDate(today);
 const maxEndDateObj = new Date();
 maxEndDateObj.setMonth(maxEndDateObj.getMonth() + 3);
-const maxEndDate = formatDate(maxEndDateObj);
 const minEndDate = schedule.start_date || minStartDate;
+
+  useEffect(() => {
+  const today = new Date();
+
+  const min = formatDate(today);
+
+  const maxDate = new Date();
+  maxDate.setMonth(maxDate.getMonth() + 3);
+
+  const max = formatDate(maxDate);
+
+  setMinStartDate(min);
+  setMaxEndDate(max);
+  }, []);
 
   // ---------------- HANDLER ----------------
 
@@ -89,13 +137,16 @@ const minEndDate = schedule.start_date || minStartDate;
 
       //console.log('SCHEDULE:', schedule);
 
-      const response = await fetch('/api/tasks', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
+      const method = mode === 'edit' ? 'PUT' : 'POST';
+      const url = mode === 'edit'
+          ? `/api/tasks/${initialData?.id}`
+          : '/api/tasks';
+
+      const response = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
 
       if (!response.ok) {
         throw new Error('Failed to create task');
@@ -120,7 +171,7 @@ const minEndDate = schedule.start_date || minStartDate;
         end_date: '',
       });
 
-      onTaskCreated?.(newTask);
+      onSuccess?.(newTask);
 
     } catch (err) {
       if (err instanceof Error) setError(err.message);
@@ -237,7 +288,9 @@ const minEndDate = schedule.start_date || minStartDate;
         disabled={loading}
         className={styles.submitButton}
       >
-        {loading ? 'Creating...' : 'Create Task'}
+        {loading
+          ? mode === 'edit' ? 'Updating...' : 'Creating...'
+          : mode === 'edit' ? 'Update Task' : 'Create Task'}
       </button>
     </form>
   );

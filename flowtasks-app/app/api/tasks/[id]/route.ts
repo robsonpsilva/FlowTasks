@@ -23,25 +23,63 @@ export async function PUT(
   const { id } = await params;
   const body = await req.json();
 
-  const result = await db.query(
-    `UPDATE tasks
-     SET title = $1,
-         description = $2,
-         status = $3,
-         priority = $4,
-         updated_at = CURRENT_TIMESTAMP
-     WHERE id = $5
-     RETURNING *`,
-    [
-      body.title,
-      body.description,
-      body.status,
-      body.priority,
-      id,
-    ]
-  );
+  const client = await db.connect();
 
-  return Response.json(result.rows[0]);
+  try {
+    await client.query('BEGIN');
+
+    // 1. Update task
+    const taskResult = await client.query(
+      `UPDATE tasks
+       SET title = $1,
+           description = $2,
+           status = $3,
+           priority = $4,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $5
+       RETURNING *`,
+      [
+        body.title,
+        body.description,
+        body.status,
+        body.priority,
+        id,
+      ]
+    );
+
+    // 2. Update schedule (assuming 1:1 relation)
+    const scheduleResult = await client.query(
+      `UPDATE task_schedules
+       SET frequency = $1,
+           days_of_week = $2,
+           start_date = $3,
+           end_date = $4
+       WHERE task_id = $5
+       RETURNING *`,
+      [
+        body.schedule.frequency,
+        body.schedule.days_of_week, // should already be numbers
+        body.schedule.start_date,
+        body.schedule.end_date,
+        id,
+      ]
+    );
+
+    await client.query('COMMIT');
+
+    // 3. Combine response
+    return Response.json({
+      ...taskResult.rows[0],
+      schedule: scheduleResult.rows[0],
+    });
+
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error(error);
+    return new Response('Failed to update task', { status: 500 });
+  } finally {
+    client.release();
+  }
 }
 
 // deactivateTask (soft delete)

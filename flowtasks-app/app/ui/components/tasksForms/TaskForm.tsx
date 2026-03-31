@@ -190,6 +190,7 @@ const minEndDate = schedule.start_date || minStartDate;
         type="text"
         name="title"
         placeholder="Task title"
+        maxLength={60}
         value={formData.title}
         onChange={(e) => handleTaskChange(e, setFormData)}
         required
@@ -199,6 +200,7 @@ const minEndDate = schedule.start_date || minStartDate;
       <textarea
         name="description"
         placeholder="Description"
+        maxLength={500}
         value={formData.description}
         onChange={(e) => handleTaskChange(e, setFormData)}
         className={styles.Input }

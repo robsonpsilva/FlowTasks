@@ -110,13 +110,25 @@ export async function DELETE(
 
     const { id } = await params;
 
-    // 1️⃣ Delete schedule
+    // 1️⃣ Delete relations with users  
+    await client.query(
+      `DELETE FROM tasks_users WHERE tasks_id = $1`,
+      [id]
+    );
+
+    // 2️⃣ Delete relations with instances
+    await client.query(
+      `DELETE FROM task_instances WHERE task_id = $1`,
+      [id]
+    );
+
+    // 3️⃣ Delete schedule
     await client.query(
       `DELETE FROM task_schedules WHERE task_id = $1`,
       [id]
     );
 
-    // 2️⃣ Delete task
+    // 4️⃣ Delete task
     const result = await client.query(
       `DELETE FROM tasks WHERE id = $1 RETURNING *`,
       [id]

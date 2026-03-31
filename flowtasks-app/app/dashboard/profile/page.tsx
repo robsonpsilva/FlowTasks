@@ -1,297 +1,161 @@
 "use client";
 
-import { useRef, useState } from "react";
-
-type UserProfile = {
-  username: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  googlePhoto: string | null;
-  localPhoto: string | null;
-};
+import { useSession } from "next-auth/react";
+import { useState, useRef } from "react";
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<UserProfile>({
-    username: "sweep",
-    firstName: "Gabriela",
-    lastName: "Rivera",
-    email: "gabriela@email.com",
-    googlePhoto: null,
-    localPhoto: null,
+  const { data: session, update } = useSession();
+  const [isUploading, setIsUploading] = useState(false);
+  
+  // Estado para o Banner
+  const [banner, setBanner] = useState<{ message: string; type: 'success' | 'error' | null }>({
+    message: "",
+    type: null
   });
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const user = session?.user;
 
-  const [originalUser, setOriginalUser] = useState<UserProfile>({
-    username: "sweep",
-    firstName: "Gabriela",
-    lastName: "Rivera",
-    email: "gabriela@email.com",
-    googlePhoto: null,
-    localPhoto: null,
-  });
-
-  const [isEditing, setIsEditing] = useState(false);
-  const [hasChanges, setHasChanges] = useState(false);
-
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-  const displayedPhoto = user.localPhoto || user.googlePhoto || null;
-
-  const inputStyle = {
-    width: "100%",
-    padding: "12px 14px",
-    borderRadius: "10px",
-    border: "1px solid #374151",
-    backgroundColor: "#0f172a",
-    color: "white",
-    boxSizing: "border-box" as const,
-    opacity: isEditing ? 1 : 0.75,
+  // Função para mostrar o banner centralizado e esconder após 3 segundos
+  const showBanner = (message: string, type: 'success' | 'error') => {
+    setBanner({ message, type });
+    setTimeout(() => {
+      setBanner({ message: "", type: null });
+    }, 3000);
   };
 
-  const labelStyle = {
-    display: "block",
-    marginBottom: "6px",
-    fontWeight: "bold",
-  };
-
-  const handleChange = (field: keyof UserProfile, value: string) => {
-    setUser((prev) => {
-      const updated = { ...prev, [field]: value };
-      setHasChanges(true);
-      return updated;
-    });
-  };
-
-  const handlePhotoClick = () => {
-    if (!isEditing) return;
-    fileInputRef.current?.click();
-  };
-
-  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (!file) return;
 
-    const imageUrl = URL.createObjectURL(file);
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("userId", user?.id || ""); 
 
-    setUser((prev) => ({
-      ...prev,
-      localPhoto: imageUrl,
-    }));
-    setHasChanges(true);
-  };
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
 
-  const handleEdit = () => {
-    setIsEditing(true);
-  };
+      const data = await res.json();
 
-  const handleSave = () => {
-    // backend
-
-    setOriginalUser(user);
-    setHasChanges(false);
-    setIsEditing(false);
-
-    console.log("Perfil guardado:", user);
-  };
-
-  const handleCancel = () => {
-    setUser(originalUser);
-    setHasChanges(false);
-    setIsEditing(false);
+      if (res.ok) {
+        await update({
+          ...session,
+          user: { ...session?.user, image: data.url },
+        });
+        showBanner("Foto atualizada com sucesso!", "success");
+      } else {
+        showBanner("Erro ao atualizar foto no servidor.", "error");
+      }
+    } catch (err) {
+      showBanner("Erro na conexão durante o upload.", "error");
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = ""; 
+    }
   };
 
   return (
-    <section
-      style={{
-        flex: 1,
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "flex-start",
-        padding: "40px",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "480px",
-          padding: "36px 28px",
-          borderRadius: "24px",
-          backgroundColor: "rgba(213, 221, 238, 0.20)",
-          border: "1px solid rgba(255,255,255,0.10)",
-          boxShadow: "0 20px 50px rgba(21, 17, 17, 0.35)",
-          backdropFilter: "blur(8px)",
-        }}
-      >
-        <h1
-          style={{
-            margin: "0 0 24px 0",
-            fontSize: "32px",
-            textAlign: "center",
-          }}
-        >
-          PROFILE
-        </h1>
+    <section style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "flex-start", padding: "40px", position: "relative" }}>
+      
+      {/* BANNER NOTIFICAÇÃO CENTRALIZADO E AMPLIADO */}
+      {banner.type && (
+        <div style={{
+          position: "fixed",
+          top: "40px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          padding: "20px 40px",
+          borderRadius: "14px",
+          backgroundColor: banner.type === 'success' ? "#059669" : "#DC2626",
+          color: "white",
+          fontWeight: "600",
+          fontSize: "18px",
+          boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.3)",
+          zIndex: 1000,
+          animation: "slideDown 0.4s ease-out",
+          textAlign: "center",
+          minWidth: "320px"
+        }}>
+          {banner.message}
+        </div>
+      )}
 
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: "20px",
-          }}
-        >
+      {/* Animação de entrada vinda de cima */}
+      <style jsx global>{`
+        @keyframes slideDown {
+          from { 
+            transform: translate(-50%, -100%); 
+            opacity: 0; 
+          }
+          to { 
+            transform: translate(-50%, 0); 
+            opacity: 1; 
+          }
+        }
+      `}</style>
+
+      <div style={{ width: "100%", maxWidth: "720px", backgroundColor: "#111827", border: "1px solid #1f2937", borderRadius: "16px", padding: "32px", boxShadow: "0 8px 24px rgba(0,0,0,0.25)" }}>
+        
+        <h1 style={{ margin: "0 0 24px 0", fontSize: "32px", textAlign: "center", color: "white" }}>Profile</h1>
+
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "20px" }}>
+          
           <div
-            onClick={handlePhotoClick}
+            onClick={() => !isUploading && fileInputRef.current?.click()}
             style={{
-              width: "140px",
-              height: "140px",
-              borderRadius: "16px",
-              border: "1px solid #374151",
+              width: "130px",
+              height: "130px",
+              borderRadius: "20px",
+              overflow: "hidden",
+              border: "2px solid #374151",
+              backgroundColor: user?.image ? "#0f172a" : "#FF6B35",
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              backgroundColor: "#0f172a",
-              color: "#9ca3af",
-              fontSize: "16px",
-              overflow: "hidden",
-              cursor: isEditing ? "pointer" : "default",
-              position: "relative",
+              fontSize: "40px",
+              fontWeight: "bold",
+              color: "white",
+              cursor: isUploading ? "wait" : "pointer",
+              position: "relative"
             }}
           >
-            {displayedPhoto ? (
-              <img
-                src={displayedPhoto}
-                alt="Profile"
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                }}
-              />
+            {user?.image ? (
+              <img src={user.image} alt="User photo" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: isUploading ? 0.5 : 1 }} />
             ) : (
-              <span>{isEditing ? "Upload photo" : "No photo"}</span>
+              <span>{user?.name ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) : "U"}</span>
+            )}
+            
+            {isUploading && (
+              <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(0,0,0,0.4)", fontSize: "12px" }}>
+                Uploading...
+              </div>
             )}
           </div>
 
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handlePhotoUpload}
-            style={{ display: "none" }}
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleFileChange} 
+            accept="image/*" 
+            style={{ display: "none" }} 
           />
 
-          <div
-            style={{
-              width: "100%",
-              display: "grid",
-              gridTemplateColumns: "1fr",
-              gap: "16px",
-              marginTop: "8px",
-            }}
-          >
+          <p style={{ fontSize: "12px", color: "#9ca3af" }}>Click the photo to change it</p>
+
+          <div style={{ width: "100%", display: "grid", gridTemplateColumns: "1fr", gap: "16px", marginTop: "8px" }}>
             <div>
-              <label style={labelStyle}>User Name</label>
-              <input
-                type="text"
-                value={user.username}
-                disabled={!isEditing}
-                onChange={(e) => handleChange("username", e.target.value)}
-                style={inputStyle}
-              />
+              <label style={{ display: "block", marginBottom: "6px", fontWeight: "bold", color: "white" }}>Name</label>
+              <input type="text" value={user?.name || ""} readOnly style={{ width: "100%", padding: "12px 14px", borderRadius: "10px", border: "1px solid #374151", backgroundColor: "#0f172a", color: "white", boxSizing: "border-box" }} />
             </div>
 
             <div>
-              <label style={labelStyle}>Name</label>
-              <input
-                type="text"
-                value={user.firstName}
-                disabled={!isEditing}
-                onChange={(e) => handleChange("firstName", e.target.value)}
-                style={inputStyle}
-              />
+              <label style={{ display: "block", marginBottom: "6px", fontWeight: "bold", color: "white" }}>Email</label>
+              <input type="email" value={user?.email || ""} readOnly style={{ width: "100%", padding: "12px 14px", borderRadius: "10px", border: "1px solid #374151", backgroundColor: "#0f172a", color: "white", boxSizing: "border-box" }} />
             </div>
-
-            <div>
-              <label style={labelStyle}>Last Name</label>
-              <input
-                type="text"
-                value={user.lastName}
-                disabled={!isEditing}
-                onChange={(e) => handleChange("lastName", e.target.value)}
-                style={inputStyle}
-              />
-            </div>
-
-            <div>
-              <label style={labelStyle}>Email</label>
-              <input
-                type="email"
-                value={user.email}
-                disabled={!isEditing}
-                onChange={(e) => handleChange("email", e.target.value)}
-                style={inputStyle}
-              />
-            </div>
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              gap: "12px",
-              marginTop: "12px",
-            }}
-          >
-            {!isEditing && (
-              <button
-                onClick={handleEdit}
-                style={{
-                  padding: "12px 20px",
-                  borderRadius: "10px",
-                  border: "none",
-                  backgroundColor: "#ff6b35",
-                  color: "white",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                }}
-              >
-                Edit Profile
-              </button>
-            )}
-
-            {isEditing && hasChanges && (
-              <>
-                <button
-                  onClick={handleSave}
-                  style={{
-                    padding: "12px 20px",
-                    borderRadius: "10px",
-                    border: "none",
-                    backgroundColor: "#ff6b35",
-                    color: "white",
-                    fontWeight: 600,
-                    cursor: "pointer",
-                  }}
-                >
-                  Save Changes
-                </button>
-
-                <button
-                  onClick={handleCancel}
-                  style={{
-                    padding: "12px 20px",
-                    borderRadius: "10px",
-                    border: "1px solid #374151",
-                    backgroundColor: "transparent",
-                    color: "white",
-                    fontWeight: 600,
-                    cursor: "pointer",
-                  }}
-                >
-                  Cancel
-                </button>
-              </>
-            )}
           </div>
         </div>
       </div>

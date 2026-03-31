@@ -3,9 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 import Logo from "./Logo";
+import { signOut, useSession } from "next-auth/react"; // Adicionado useSession
 
 export default function Sidebar() {
+  const { data: session } = useSession(); // Recupera os dados da sessão
   const [hovered, setHovered] = useState<string | null>(null);
+
+  // Verifica se o usuário tem a role necessária (case-insensitive para evitar erros de banco)
+  const isAdmin = session?.user?.role?.toUpperCase() === "ADMIN";
 
   const itemStyle = (name: string, active = false) => ({
     width: "100%",
@@ -96,6 +101,7 @@ export default function Sidebar() {
           </div>
         </Link>
 
+        {/* PROFILE */}
         <Link href="/dashboard/profile" style={{ textDecoration: "none" }}>
           <div
             style={itemStyle("profile")}
@@ -106,15 +112,28 @@ export default function Sidebar() {
           </div>
         </Link>
 
-        <Link href="http://localhost:3000/" style={{ textDecoration: "none" }}>
-          <div
-            style={itemStyle("auth")}
-            onMouseEnter={() => setHovered("auth")}
-            onMouseLeave={() => setHovered(null)}
-          >
-            Sign Out
-          </div>
-        </Link>
+        {/* USER MANAGEMENT - Visível apenas para ADMIN */}
+        {isAdmin && (
+          <Link href="/dashboard/users" style={{ textDecoration: "none" }}>
+            <div
+              style={itemStyle("users")}
+              onMouseEnter={() => setHovered("users")}
+              onMouseLeave={() => setHovered(null)}
+            >
+              User Management
+            </div>
+          </Link>
+        )}
+
+        {/* SIGN OUT */}
+        <div
+          style={itemStyle("auth")}
+          onMouseEnter={() => setHovered("auth")}
+          onMouseLeave={() => setHovered(null)}
+          onClick={() => signOut({ callbackUrl: "/login" })}
+        >
+          Sign Out
+        </div>
       </nav>
     </aside>
   );

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 interface UserToEdit {
   id: string;
@@ -22,13 +22,13 @@ export default function CreateAccountFlow({ onBack, userToEdit }: { onBack: () =
     name: userToEdit?.name || "", 
     email: userToEdit?.email || "", 
     password: "", 
-    role_id: resolveRoleId(userToEdit) 
+    role_id: resolveRoleId(userToEdit) // O valor padrão "1" já entra aqui
   });
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorFields, setErrorFields] = useState<Record<string, boolean>>({});
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     if (errorFields[name]) setErrorFields(prev => ({ ...prev, [name]: false }));
@@ -58,7 +58,7 @@ export default function CreateAccountFlow({ onBack, userToEdit }: { onBack: () =
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
-          provider_id: 2, // Default credentials provider
+          provider_id: 2,
         }),
       });
 
@@ -94,13 +94,7 @@ export default function CreateAccountFlow({ onBack, userToEdit }: { onBack: () =
         <input name="password" type="password" value={formData.password} onChange={handleChange} placeholder={isEdit ? "••••••••" : "Min. 6 characters"} className={`w-full p-4 rounded-xl bg-white text-black border-2 ${errorFields.password ? 'border-red-500' : 'border-transparent'}`} />
       </div>
 
-      <div className="space-y-1.5">
-        <label className="text-sm font-bold text-white">Account Role</label>
-        <select name="role_id" value={formData.role_id} onChange={handleChange} className="w-full p-4 rounded-xl bg-white text-black font-medium border-2 border-[#F7C59F]">
-          <option value="1">MEMBER</option>
-          <option value="2">ADMIN</option>
-        </select>
-      </div>
+      {/* A seção de Account Role foi removida visualmente, mas o valor permanece no formData */}
 
       <div className="flex gap-3 pt-4">
         <button type="button" onClick={onBack} className="flex-1 py-4 bg-gray-600 text-white rounded-xl font-bold">Cancel</button>

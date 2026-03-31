@@ -7,6 +7,8 @@ import TaskForm from "@/app/ui/components/tasksForms/TaskForm";
 import styles from '@/app/ui/components/componentStyles/tasksPage.module.css';
 import TasksTable from "@/app/ui/components/tasksTable/TasksTable";
 import { TaskWithSchedule } from "@/app/lib/formsHelper";
+import TasksList from "@/app/ui/components/taskList/TaskList";
+import {useIsMobile } from "@/app/ui/components/screenSize";
 
 
 export default function TasksPage() {
@@ -14,6 +16,7 @@ export default function TasksPage() {
   const [tasks, setTasks] = useState<any[]>([]);
   const [editingTask, setEditingTask] = useState<TaskWithSchedule | null>(null);
   const [taskToDelete, setTaskToDelete] = useState<number | null>(null);
+  const isMobile = useIsMobile();
 
   // Fetch tasks
   const loadTasks = useCallback(async () => {
@@ -115,7 +118,19 @@ async function confirmDelete() {
     )}
 
     <section style={{ flex: 1, padding: "20px" }}>
-       <TasksTable tasks={tasks} handleEdit={handleEdit} handleDelete={handleDeleteClick} /> 
+      {isMobile ? (
+        <TasksList
+          tasks={tasks}
+          handleEdit={handleEdit}
+          handleDelete={handleDeleteClick}
+        />
+      ) : (
+        <TasksTable
+          tasks={tasks}
+          handleEdit={handleEdit}
+          handleDelete={handleDeleteClick}
+        />
+      )}
     </section>
 
     </>

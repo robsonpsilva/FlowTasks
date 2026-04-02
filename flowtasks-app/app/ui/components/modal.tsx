@@ -1,6 +1,5 @@
 'use client';
 import styles from './componentStyles/modal.module.css';
-import Button from './button';
 
 interface ModalProps {
   open: boolean;
@@ -17,15 +16,24 @@ export default function Modal({ children, onClose, open, title }: ModalProps) {
       }
     >
       <div className={styles.modalMain}>
+        
+        {/* HEADER */}
         <div className={styles.modalHead}>
           <h2>{title}</h2>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className={styles.closeButton}
+            aria-label="Close modal"
+          >
+            ×
+          </button>
         </div>
+
+        {/* BODY */}
         <div className={styles.modalBody}>{children}</div>
-        <div className={styles.btnContainer}>
-          <Button type="button" onClick={onClose}>
-            Close
-          </Button>
-        </div>
+
       </div>
     </div>
   );

@@ -1,0 +1,28 @@
+.addButtonContainer {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+}   
+.newTaskbtn {
+color: white;
+background-color: var(--secondary-color);
+font-weight: 900;
+}
+
+.newTaskbtn:hover {
+    background-color: var(--tertiary-color); 
+    color: var(--secondary-color); 
+}
+
+.pageTitle {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 20px;
+}
+
+.deleteButton {
+  background-color: #ef4444;
+}
+.deleteButton:hover {
+  background-color: #dc2626; 
+}

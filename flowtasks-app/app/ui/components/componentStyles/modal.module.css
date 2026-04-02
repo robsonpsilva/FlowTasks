@@ -20,8 +20,13 @@
 .modalHead {
   font-size: 1.5rem;
   font-weight: 600;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid var(--secondary-color);
   padding-bottom: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--primary-color);
+  font-weight: bold;
 }
 
 .modalMain{
@@ -39,16 +44,24 @@ background-color: #fefefe;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.btnContainer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  margin-top: 1rem;
-}
 
 .displayBlock{
     display: block;
 }
 .displayNone {
     display: none;
+}
+
+.closeButton {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.closeButton:hover {
+  background: var(--secondary-color);
+  color: var(--tertiary-color);
+  font-weight: bold;
 }

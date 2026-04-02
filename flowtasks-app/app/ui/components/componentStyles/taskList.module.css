@@ -1,0 +1,44 @@
+.listContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card {
+  background-color: var(--light-primary-color);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.cardTitle {
+  font-size: 1.2em;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.cardDescription {
+  margin-bottom: 16px;
+}
+
+.cardFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.editButton {
+  background-color: #3b82f6; 
+}
+
+.deleteButton {
+  background-color: #ef4444;
+}
+.deleteButton:hover {
+  background-color: #dc2626; 
+}
+
+.editButton:hover {
+  background-color: #2563eb; 
+}

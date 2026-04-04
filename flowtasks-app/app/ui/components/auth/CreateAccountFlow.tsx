@@ -1,4 +1,5 @@
 "use client";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 interface UserToEdit {
@@ -11,6 +12,7 @@ interface UserToEdit {
 
 export default function CreateAccountFlow({ onBack, userToEdit }: { onBack: () => void; userToEdit?: UserToEdit | null }) {
   const isEdit = !!userToEdit;
+  const router = useRouter();
 
   const resolveRoleId = (user: UserToEdit | null | undefined): string => {
     if (!user) return "1"; // Default: MEMBER
@@ -97,7 +99,7 @@ export default function CreateAccountFlow({ onBack, userToEdit }: { onBack: () =
       {/* A seção de Account Role foi removida visualmente, mas o valor permanece no formData */}
 
       <div className="flex gap-3 pt-4">
-        <button type="button" onClick={onBack} className="flex-1 py-4 bg-gray-600 text-white rounded-xl font-bold">Cancel</button>
+        <button type="button" onClick={() => router.push("/")} className="flex-1 py-4 bg-gray-600 text-white rounded-xl font-bold">Cancel</button>
         <button type="submit" disabled={isLoading} className="flex-[2] py-4 bg-[#FF6B35] text-white font-bold rounded-xl transition-transform active:scale-95">
           {isLoading ? "Saving..." : isEdit ? "Update User" : "Create User"}
         </button>

@@ -1,33 +1,33 @@
 import db from "../../lib/db";
+import { auth } from "@/auth";
 
-// GET ONLY ACTIVE TASKS
-// GET /api/tasks?active=true
+// GET /api/tasks
 export async function GET(req: Request) {
+  const session = await auth();
+
+  // 🛡️ Proteção de Camada de API
+  if (!session || !session.user?.id) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const userId = session.user.id;
   const { searchParams } = new URL(req.url);
   const active = searchParams.get('active');
 
   if (active === 'true') {
     const result = await db.query(`
       SELECT * FROM tasks
-      WHERE is_active = true
+      WHERE is_active = true AND user_id = $1
       ORDER BY created_at DESC
-    `);
+    `, [userId]);
 
     return Response.json(result.rows);
   }
 
-  // default: all tasks with schedule
+  // default: all tasks with schedule + filter by user
   const result = await db.query(`
     SELECT 
-      t.id,
-      t.title,
-      t.description,
-      t.status,
-      t.priority,
-      t.is_active,
-      t.category_id,
-      t.created_at,
-      t.updated_at,
+      t.*,
       s.frequency,
       s.days_of_week,
       s.start_date,
@@ -35,8 +35,9 @@ export async function GET(req: Request) {
     FROM tasks t
     LEFT JOIN task_schedules s 
       ON s.task_id = t.id
+    WHERE t.user_id = $1
     ORDER BY t.created_at DESC
-  `);
+  `, [userId]);
 
   const tasks = result.rows.map((row: any) => ({
     ...row,
@@ -53,9 +54,16 @@ export async function GET(req: Request) {
   return Response.json(tasks);
 }
 
-// CREATE
 // CREATE TASK + REQUIRED SCHEDULE
 export async function POST(req: Request) {
+  const session = await auth();
+
+  // 🛡️ Proteção de Camada de API
+  if (!session || !session.user?.id) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const userId = session.user.id;
   const client = await db.connect();
 
   try {
@@ -70,25 +78,25 @@ export async function POST(req: Request) {
 
     await client.query("BEGIN");
 
-    // 1️⃣ Create task
+    // 1️⃣ Create task associada ao userId da sessão
     const taskResult = await client.query(
       `INSERT INTO tasks (
-        title, description, status, priority, is_active, category_id
+        title, description, status, priority, is_active, category_id, user_id
       )
-      VALUES ($1, $2, $3, $4, $5, $6)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *`,
       [
         body.title,
         body.description,
         body.status || "PENDING",
         body.priority || "MEDIUM",
-        true, // always true
+        true,
         body.category_id,
+        userId // 🛡️ ID vindo da sessão segura
       ]
     );
 
     const task = taskResult.rows[0];
-
     const schedule = body.schedule;
 
     // 2️⃣ Create schedule
@@ -125,7 +133,7 @@ export async function POST(req: Request) {
 
   } catch (error) {
     await client.query("ROLLBACK");
-    console.error(error);
+    console.error("API Error:", error);
 
     return Response.json(
       { error: "Failed to create task + schedule" },

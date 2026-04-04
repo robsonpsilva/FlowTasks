@@ -1,6 +1,6 @@
-import { Task } from "@/app/lib/definitions";
+import { TaskInstance } from '@/app/services/taskInstances';
 
-export default function TaskCard({ task }: { task: Task }) {
+export default function TaskCard({ task }: { task: TaskInstance }) {
   return (
     <div
       style={{

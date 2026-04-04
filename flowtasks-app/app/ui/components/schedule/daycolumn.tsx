@@ -1,7 +1,8 @@
+import { TaskInstance } from '@/app/services/taskInstances';
 import TaskCard from './taskCard';
 import { Task } from '@/app/lib/definitions';
 
-export default function DayColumn({ date, tasks }: { date: Date; tasks: Task[] }) {
+export default function DayColumn({ date, tasks }: { date: Date; tasks: TaskInstance[] }) {
   return (
     <div
       style={{
@@ -19,7 +20,7 @@ export default function DayColumn({ date, tasks }: { date: Date; tasks: Task[] }
       <p>{date.getDate()}</p>
 
       {tasks.map((task) => (
-        <TaskCard key={task.id} task={task} />
+        <TaskCard key={task.task_id} task={task} />
       ))}
     </div>
   );

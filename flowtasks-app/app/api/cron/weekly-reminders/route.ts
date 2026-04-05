@@ -38,6 +38,7 @@ export async function GET(req: Request) {
     `);
 
     // 3. Email Dispatch Loop via Nodemailer
+
     for (const user of reminders) {
       await transporter.sendMail({
         from: `"FlowTasks" <${process.env.GMAIL_USER}>`,

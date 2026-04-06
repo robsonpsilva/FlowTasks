@@ -14,9 +14,9 @@ const options: SMTPTransport.Options = {
     pass: process.env.GMAIL_APP_PASSWORD,
   },
   // Aumentamos os timeouts para dar tempo do Render atravessar o firewall
-  connectionTimeout: 20000,
-  greetingTimeout: 20000,
-  socketTimeout: 30000,
+  connectionTimeout: 40000,
+  greetingTimeout: 40000,
+  socketTimeout: 40000,
   /**
    * Forçamos a família 4 explicitamente. 
    * @ts-expect-error: Forced IPv4 to prevent Render's ENETUNREACH error on IPv6

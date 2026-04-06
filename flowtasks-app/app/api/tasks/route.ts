@@ -1,8 +1,16 @@
 import db from "../../lib/db";
-
+import { auth } from "../auth/[...nextauth]/route"; 
 // GET ONLY ACTIVE TASKS
 // GET /api/tasks?active=true
 export async function GET(req: Request) {
+const session = await auth();
+
+  if (!session?.user?.id) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const userId = session.user.id;
+
   const { searchParams } = new URL(req.url);
   const active = searchParams.get('active');
 
@@ -17,26 +25,31 @@ export async function GET(req: Request) {
   }
 
   // default: all tasks with schedule
-  const result = await db.query(`
-    SELECT 
-      t.id,
-      t.title,
-      t.description,
-      t.status,
-      t.priority,
-      t.is_active,
-      t.category_id,
-      t.created_at,
-      t.updated_at,
-      s.frequency,
-      s.days_of_week,
-      s.start_date,
-      s.end_date
-    FROM tasks t
-    LEFT JOIN task_schedules s 
-      ON s.task_id = t.id
-    ORDER BY t.created_at DESC
-  `);
+  const result = await db.query(
+  `SELECT 
+    t.id,
+    t.title,
+    t.description,
+    t.status,
+    t.priority,
+    t.is_active,
+    t.category_id,
+    t.created_at,
+    t.updated_at,
+    s.frequency,
+    s.days_of_week,
+    s.start_date,
+    s.end_date
+  FROM tasks t
+  INNER JOIN tasks_users tu 
+    ON tu.tasks_id = t.id
+  LEFT JOIN task_schedules s 
+    ON s.task_id = t.id
+  WHERE tu.users_id = $1
+  ORDER BY t.created_at DESC
+  `,
+  [userId]
+);
 
   const tasks = result.rows.map((row: any) => ({
     ...row,
@@ -56,6 +69,13 @@ export async function GET(req: Request) {
 // CREATE
 // CREATE TASK + REQUIRED SCHEDULE
 export async function POST(req: Request) {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const userId = session.user.id;
   const client = await db.connect();
 
   try {
@@ -89,9 +109,15 @@ export async function POST(req: Request) {
 
     const task = taskResult.rows[0];
 
+  //2️⃣ Link task to user 
+      await client.query(
+    `INSERT INTO tasks_users (tasks_id, users_id)
+    VALUES ($1, $2)`,
+    [task.id, userId]);
+
     const schedule = body.schedule;
 
-    // 2️⃣ Create schedule
+    //3️⃣ Create schedule
     const scheduleResult = await client.query(
       `INSERT INTO task_schedules (
         task_id,

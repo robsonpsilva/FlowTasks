@@ -35,14 +35,16 @@ export async function PUT(
            description = $2,
            status = $3,
            priority = $4,
+           category_id = $5,
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = $5
+       WHERE id = $6
        RETURNING *`,
       [
         body.title,
         body.description,
         body.status,
         body.priority,
+        body.category_id,
         id,
       ]
     );
@@ -60,7 +62,7 @@ export async function PUT(
         body.schedule.frequency,
         body.schedule.days_of_week, // should already be numbers
         body.schedule.start_date,
-        body.schedule.end_date,
+        body.schedule.end_date || null, // allow null for no end date
         id,
       ]
     );

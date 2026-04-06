@@ -46,7 +46,7 @@ export async function GET(req: Request) {
           <p>Don't let your goals slip away! Check your dashboard to see what's next.</p>
           <br />
           <div style="text-align: center;">
-            <a href="${process.env.NEXT_PUBLIC_APP_URL}" 
+            <a href="${process.env.PUBLIC_APP_URL}" 
                style="background: #FF6B35; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
                Open FlowTasks
             </a>

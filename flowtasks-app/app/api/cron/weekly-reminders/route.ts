@@ -15,6 +15,8 @@ const options: SMTPTransport.Options = {
   connectionTimeout: 10000,
   greetingTimeout: 10000,
   socketTimeout: 10000,
+  debug: true, 
+  logger: true,
   /**
    * Forçamos IPv4 para evitar o erro ENETUNREACH comum no ambiente do Render 
    * ao tentar conexões IPv6 com os servidores do Google.

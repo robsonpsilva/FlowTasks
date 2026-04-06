@@ -11,7 +11,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  /* outras opções de config se necessário */
 };
 
 export default nextConfig;

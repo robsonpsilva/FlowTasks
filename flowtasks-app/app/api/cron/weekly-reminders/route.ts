@@ -36,7 +36,7 @@ export async function GET(req: Request) {
     // 3. Preparação e Envio via Resend (Batch/Lote)
     // O Resend permite enviar até 100 e-mails em uma única chamada de API
     const emailData = reminders.map((user) => ({
-      from: "FlowTasks <notificacoes@rpstech.dev.br>", // Use o domínio do Resend para testes
+      from: "FlowTask <notificacoes@rpstech.dev.br>", // Use o domínio do Resend para testes
       to: user.email,
       subject: `📌 Weekly Reminder: You have ${user.task_count} pending tasks!`,
       html: `

@@ -59,7 +59,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const isApiRoute = nextUrl.pathname.startsWith("/api");
       const isPublicPage = nextUrl.pathname === "/" || nextUrl.pathname === "/login";
 
-      if (isApiRoute || isPublicPage) return true;
+      const isStaticFile = 
+      nextUrl.pathname.startsWith("/icon.png") || 
+      nextUrl.pathname.startsWith("/favicon.ico") ||
+      nextUrl.pathname.startsWith("/images/");
+
+    if (isApiRoute || isPublicPage || isStaticFile) return true;
 
       return isLoggedIn;
     },

@@ -69,7 +69,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ 
       success: true, 
       emails_sent: reminders.length,
-      resend_id: data?.map(d => d.id)
+      resend_id: Array.isArray(data) ? data.map(d => d.id) : []
     });
 
   } catch (error) {

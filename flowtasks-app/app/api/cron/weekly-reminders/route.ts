@@ -5,25 +5,26 @@ import db from "@/app/lib/db";
 
 // 1. Configuração robusta para produção (Render/Gmail)
 const options: SMTPTransport.Options = {
-  host: "smtp.gmail.com",
+  // Usamos o IP direto para evitar que o Nodemailer tente resolver IPv6
+  host: "74.125.124.108", // IP fixo do smtp.gmail.com (IPv4)
   port: 587,
-  secure: true, // true para porta 465 (SSL)
+  secure: false,
   auth: {
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_APP_PASSWORD,
   },
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 10000,
-  debug: true, 
-  logger: true,
+  // Aumentamos os timeouts para dar tempo do Render atravessar o firewall
+  connectionTimeout: 20000,
+  greetingTimeout: 20000,
+  socketTimeout: 30000,
   /**
-   * Forçamos IPv4 para evitar o erro ENETUNREACH comum no ambiente do Render 
-   * ao tentar conexões IPv6 com os servidores do Google.
+   * Forçamos a família 4 explicitamente. 
+   * @ts-expect-error: Forced IPv4 to prevent Render's ENETUNREACH error on IPv6
    */
-  // @ts-expect-error: 'family' exists in SMTPTransport but is not exposed in the base Nodemailer types
-  family: 4, 
-};
+  family: 4,
+  // Desativa o suporte a upgrade para IPv6 se o IPv4 falhar
+  opportunisticTLS: true,
+} as any;
 
 const transporter = nodemailer.createTransport(options);
 

@@ -6,7 +6,7 @@ import db from "@/app/lib/db";
 // 1. Configuração robusta para produção (Render/Gmail)
 const options: SMTPTransport.Options = {
   host: "smtp.gmail.com",
-  port: 465,
+  port: 587,
   secure: true, // true para porta 465 (SSL)
   auth: {
     user: process.env.GMAIL_USER,

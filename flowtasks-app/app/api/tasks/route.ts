@@ -1,76 +1,52 @@
 import db from "../../lib/db";
-import { auth } from "../auth/[...nextauth]/route"; 
-// GET ONLY ACTIVE TASKS
-// GET /api/tasks?active=true
-export async function GET(req: Request) {
-const session = await auth();
+import { auth } from "@/auth";
 
+export async function GET(req: Request) {
+  const session = await auth();
   if (!session?.user?.id) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const userId = session.user.id;
 
-  const { searchParams } = new URL(req.url);
-  const active = searchParams.get('active');
+  try {
+    const { searchParams } = new URL(req.url);
+    const active = searchParams.get('active');
 
-  if (active === 'true') {
-    const result = await db.query(`
-      SELECT * FROM tasks
-      WHERE is_active = true
-      ORDER BY created_at DESC
-    `);
+    // AJUSTE: O filtro 'active' agora precisa do JOIN com tasks_users
+    const baseQuery = `
+      SELECT 
+        t.*, s.frequency, s.days_of_week, s.start_date, s.end_date
+      FROM public.tasks t
+      INNER JOIN public.tasks_users tu ON tu.tasks_id = t.id
+      LEFT JOIN public.task_schedules s ON s.task_id = t.id
+      WHERE tu.users_id = $1
+    `;
 
-    return Response.json(result.rows);
+    const filter = active === 'true' ? " AND t.is_active = true" : "";
+    const finalQuery = `${baseQuery}${filter} ORDER BY t.created_at DESC`;
+
+    const result = await db.query(finalQuery, [userId]);
+
+    const tasks = result.rows.map((row: any) => ({
+      ...row,
+      schedule: row.frequency ? {
+        frequency: row.frequency,
+        days_of_week: row.days_of_week ?? [],
+        start_date: row.start_date,
+        end_date: row.end_date,
+      } : null,
+    }));
+
+    return Response.json(tasks);
+  } catch (error) {
+    console.error("GET Tasks Error:", error);
+    return Response.json({ error: "Failed to fetch tasks" }, { status: 500 });
   }
-
-  // default: all tasks with schedule
-  const result = await db.query(
-  `SELECT 
-    t.id,
-    t.title,
-    t.description,
-    t.status,
-    t.priority,
-    t.is_active,
-    t.category_id,
-    t.created_at,
-    t.updated_at,
-    s.frequency,
-    s.days_of_week,
-    s.start_date,
-    s.end_date
-  FROM tasks t
-  INNER JOIN tasks_users tu 
-    ON tu.tasks_id = t.id
-  LEFT JOIN task_schedules s 
-    ON s.task_id = t.id
-  WHERE tu.users_id = $1
-  ORDER BY t.created_at DESC
-  `,
-  [userId]
-);
-
-  const tasks = result.rows.map((row: any) => ({
-    ...row,
-    schedule: row.frequency
-      ? {
-          frequency: row.frequency,
-          days_of_week: row.days_of_week ?? [],
-          start_date: row.start_date,
-          end_date: row.end_date,
-        }
-      : null,
-  }));
-
-  return Response.json(tasks);
 }
 
-// CREATE
-// CREATE TASK + REQUIRED SCHEDULE
 export async function POST(req: Request) {
   const session = await auth();
-
   if (!session?.user?.id) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -80,19 +56,15 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-
     if (!body.schedule) {
-      return Response.json(
-        { error: "Schedule is required" },
-        { status: 400 }
-      );
+      return Response.json({ error: "Schedule is required" }, { status: 400 });
     }
 
     await client.query("BEGIN");
 
-    // 1️⃣ Create task
+    // 1️⃣ REMOVIDO 'user_id' daqui, pois não existe na tabela 'tasks' do seu SQL
     const taskResult = await client.query(
-      `INSERT INTO tasks (
+      `INSERT INTO public.tasks (
         title, description, status, priority, is_active, category_id
       )
       VALUES ($1, $2, $3, $4, $5, $6)
@@ -100,32 +72,28 @@ export async function POST(req: Request) {
       [
         body.title,
         body.description,
-        body.status || "PENDING",
-        body.priority || "MEDIUM",
-        true, // always true
-        body.category_id,
+        body.status || 'PENDING',
+        body.priority || 'MEDIUM',
+        true,
+        body.category_id
       ]
     );
 
     const task = taskResult.rows[0];
 
-  //2️⃣ Link task to user 
-      await client.query(
-    `INSERT INTO tasks_users (tasks_id, users_id)
-    VALUES ($1, $2)`,
-    [task.id, userId]);
+    // 2️⃣ O vínculo com o usuário acontece aqui (Esta tabela existe no seu SQL)
+    await client.query(
+      `INSERT INTO public.tasks_users (tasks_id, users_id)
+      VALUES ($1, $2)`,
+      [task.id, userId]
+    );
 
-    const schedule = body.schedule;
+    const { schedule } = body;
 
-    //3️⃣ Create schedule
+    // 3️⃣ Inserção do Schedule (Bate com seu SQL)
     const scheduleResult = await client.query(
-      `INSERT INTO task_schedules (
-        task_id,
-        frequency,
-        times_per_week,
-        days_of_week,
-        start_date,
-        end_date
+      `INSERT INTO public.task_schedules (
+        task_id, frequency, times_per_week, days_of_week, start_date, end_date
       )
       VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *`,
@@ -141,23 +109,11 @@ export async function POST(req: Request) {
 
     await client.query("COMMIT");
 
-    return Response.json(
-      {
-        ...task,
-        schedule: scheduleResult.rows[0],
-      },
-      { status: 201 }
-    );
-
+    return Response.json({ ...task, schedule: scheduleResult.rows[0] }, { status: 201 });
   } catch (error) {
     await client.query("ROLLBACK");
-    console.error(error);
-
-    return Response.json(
-      { error: "Failed to create task + schedule" },
-      { status: 500 }
-    );
-
+    console.error("API POST Error:", error);
+    return Response.json({ error: "Failed to create task" }, { status: 500 });
   } finally {
     client.release();
   }

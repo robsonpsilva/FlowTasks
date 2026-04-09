@@ -64,7 +64,6 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-
     if (!body.schedule) {
       return NextResponse.json(
         { error: "Schedule is required" },

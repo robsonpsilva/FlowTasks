@@ -5,7 +5,6 @@ import Button from "@/app/ui/components/button";
 import Modal from "@/app/ui/components/modal";
 import TaskForm from "@/app/ui/components/tasksForms/TaskForm";
 import styles from '@/app/ui/components/componentStyles/tasksPage.module.css';
-import TasksTable from "@/app/ui/components/tasksTable/TasksTable";
 import { TaskWithSchedule } from "@/app/lib/formsHelper";
 import TasksList from "@/app/ui/components/taskList/TaskList";
 import {useIsMobile } from "@/app/ui/components/screenSize";
@@ -117,21 +116,11 @@ async function confirmDelete() {
     </Modal>
     )}
 
-    <section style={{ flex: 1, padding: "20px" }}>
-      {isMobile ? (
         <TasksList
           tasks={tasks}
           handleEdit={handleEdit}
           handleDelete={handleDeleteClick}
         />
-      ) : (
-        <TasksTable
-          tasks={tasks}
-          handleEdit={handleEdit}
-          handleDelete={handleDeleteClick}
-        />
-      )}
-    </section>
 
     </>
   );

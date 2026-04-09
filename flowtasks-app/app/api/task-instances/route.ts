@@ -1,59 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
 import db from "../../lib/db";
-import { generateTaskInstances } from "../../services/taskInstances";
 
 export async function GET(req: NextRequest) {
-    const { searchParams } = new URL(req.url);
+  const { searchParams } = new URL(req.url);
 
-    const from =
-        searchParams.get("from") ||
-        new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString();
+  const start = searchParams.get("start");
+  const end = searchParams.get("end");
 
-    const to =
-        searchParams.get("to") ||
-        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-
-    const result = await db.query(`
-    SELECT 
-        t.id,
+  try {
+    let query = `
+      SELECT 
+        ti.id,
+        ti.task_id,
+        ti.scheduled_date,
+        ti.status,
+        ti.created_at,
         t.title,
-        t.description,
-        t.status,
-        t.priority,
-        t.is_active,
-        t.category_id,
-        t.created_at,
-        t.updated_at,
+        t.priority
+      FROM task_instances ti
+      JOIN tasks t ON t.id = ti.task_id
+    `;
 
-        s.frequency,
-        s.days_of_week,
-        s.start_date,
-        s.end_date
-    FROM tasks t
-    LEFT JOIN task_schedules s 
-        ON s.task_id = t.id
-  `);
+    const params: any[] = [];
 
-    // console.log("TASK ROWS:", result.rows);
+    if (start && end) {
+      query += ` WHERE ti.scheduled_date BETWEEN $1 AND $2 `;
+      params.push(start, end);
+    }
 
-    const tasks = result.rows.map((t: any) => ({
-        ...t,
+    query += ` ORDER BY ti.scheduled_date ASC`;
 
-        schedule: {
-            frequency: t.frequency,
-            days_of_week: Array.isArray(t.days_of_week)
-                ? t.days_of_week
-                : t.days_of_week ?? [],
-            start_date: t.start_date,
-            end_date: t.end_date,
-        },
-    }));
+    const result = await db.query(query, params);
 
-    // console.log("TASKS AFTER MAP:", tasks);
-
-    const instances = tasks.flatMap((task) =>
-        generateTaskInstances(task, from, to)
+    return NextResponse.json(result.rows);
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json(
+      { error: "Failed to fetch task instances" },
+      { status: 500 }
     );
-
-    return NextResponse.json(instances);
+  }
 }

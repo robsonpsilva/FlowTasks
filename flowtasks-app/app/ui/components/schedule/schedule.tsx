@@ -20,14 +20,28 @@ function getWeekDates() {
   });
 }
 
+function formatDateLocal(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export default function Schedule() {
-  const [instances, setInstances] = useState([]);
+  const [instances, setInstances] = useState<any[]>([]);
 
   useEffect(() => {
     async function load() {
       const res = await fetch('/api/task-instances');
       const data = await res.json();
-      setInstances(data);
+
+      // normalize date shape (critical for grouping)
+      const normalized = data.map((i: any) => ({
+        ...i,
+        scheduled_date: i.scheduled_date,
+      }));
+
+      setInstances(normalized);
     }
 
     load();
@@ -44,19 +58,19 @@ export default function Schedule() {
       <div className={styles.currentWeekDisplay}>
         <h2>
           Week{' '}
-          {week[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} -
+          {week[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} -{' '}
           {week[6].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
         </h2>
       </div>
 
       <div style={{ display: 'flex', gap: '1rem' }}>
         {week.map((date) => {
-          const formatted = date.toISOString().split('T')[0];
-          const tasksForDay = grouped[formatted] || [];
+          const key = formatDateLocal(date);
+          const tasksForDay = grouped[key] || [];
 
           return (
             <DayColumn
-              key={formatted}
+              key={key}
               date={date}
               tasks={tasksForDay}
             />

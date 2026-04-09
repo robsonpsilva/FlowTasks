@@ -1,9 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { TaskInstance } from "@/app/services/taskInstances";
 
-export default function TaskCard({ task }: { task: TaskInstance }) {
-  const [loading, setLoading] = useState(false);
+export default function TaskCard({ 
+  task,
+  onUpdate,
+}: { 
+  task: TaskInstance;
+  onUpdate?: (id: number, status: "DONE" | "PENDING") => Promise<void>;
+}) {
+
   const [checked, setChecked] = useState(task.status === "DONE");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setChecked(task.status === "DONE");
+  }, [task.status]);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -16,23 +27,16 @@ export default function TaskCard({ task }: { task: TaskInstance }) {
   async function handleCheck(e: React.ChangeEvent<HTMLInputElement>) {
     const isChecked = e.target.checked;
 
-    setChecked(isChecked);
+    setChecked(isChecked); // instant UI
     setLoading(true);
 
     try {
-      await fetch(`/api/task-instances/${task.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          status: isChecked ? "DONE" : "PENDING",
-          completed_date: isChecked ? new Date().toISOString() : null,
-        }),
-      });
+      if (onUpdate) {
+        await onUpdate(task.id, isChecked ? "DONE" : "PENDING");
+      }
     } catch (err) {
       console.error(err);
-      setChecked(!isChecked); // rollback
+      setChecked(!isChecked); // rollback if failed
     } finally {
       setLoading(false);
     }
@@ -43,7 +47,6 @@ export default function TaskCard({ task }: { task: TaskInstance }) {
     : isOverdue
     ? "#7a1f1f" // red
     : "#1A659E";
-
 
   return (
     <div

@@ -67,17 +67,10 @@ export async function PUT(
        WHERE task_id = $5
        RETURNING *`,
       [
-<<<<<<< HEAD
-        body.schedule?.frequency ?? null,
-        body.schedule?.days_of_week ?? [],
-        toTimestamp(body.schedule?.start_date),
-        toTimestamp(body.schedule?.end_date),
-=======
         body.schedule.frequency,
         body.schedule.days_of_week, // should already be numbers
         body.schedule.start_date,
         body.schedule.end_date || null, // allow null for no end date
->>>>>>> 58eaf90b209086a332f44f4a8bc92fa9d4538ed5
         id,
       ]
     );

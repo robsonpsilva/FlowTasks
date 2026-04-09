@@ -1,6 +1,11 @@
+import { NextRequest, NextResponse } from "next/server";
 import db from "../../lib/db";
+import { generateTaskInstances } from "../../services/taskInstances";
 import { auth } from "@/auth";
 
+/**
+ * GET TASKS
+ */
 export async function GET(req: Request) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -13,7 +18,6 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const active = searchParams.get('active');
 
-    // AJUSTE: O filtro 'active' agora precisa do JOIN com tasks_users
     const baseQuery = `
       SELECT 
         t.*, s.frequency, s.days_of_week, s.start_date, s.end_date
@@ -45,10 +49,14 @@ export async function GET(req: Request) {
   }
 }
 
-export async function POST(req: Request) {
+/**
+ * CREATE TASK + SCHEDULE + INSTANCES
+ */
+export async function POST(req: NextRequest) {
   const session = await auth();
+
   if (!session?.user?.id) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const userId = session.user.id;
@@ -57,46 +65,71 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     if (!body.schedule) {
-      return Response.json({ error: "Schedule is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Schedule is required" },
+        { status: 400 }
+      );
     }
 
     await client.query("BEGIN");
 
-    // 1️⃣ REMOVIDO 'user_id' daqui, pois não existe na tabela 'tasks' do seu SQL
+    /**
+     * 1. Create task
+     */
     const taskResult = await client.query(
-      `INSERT INTO public.tasks (
-        title, description, status, priority, is_active, category_id
+      `
+      INSERT INTO public.tasks (
+        title,
+        description,
+        status,
+        priority,
+        is_active,
+        category_id
       )
       VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING *`,
+      RETURNING *
+      `,
       [
         body.title,
         body.description,
-        body.status || 'PENDING',
-        body.priority || 'MEDIUM',
+        body.status || "PENDING",
+        body.priority || "MEDIUM",
         true,
-        body.category_id
+        body.category_id,
       ]
     );
 
     const task = taskResult.rows[0];
 
-    // 2️⃣ O vínculo com o usuário acontece aqui (Esta tabela existe no seu SQL)
+    /**
+     * 2. Link task to user (CRITICAL)
+     */
     await client.query(
-      `INSERT INTO public.tasks_users (tasks_id, users_id)
-      VALUES ($1, $2)`,
+      `
+      INSERT INTO public.tasks_users (tasks_id, users_id)
+      VALUES ($1, $2)
+      `,
       [task.id, userId]
     );
 
-    const { schedule } = body;
+    const schedule = body.schedule;
 
-    // 3️⃣ Inserção do Schedule (Bate com seu SQL)
+    /**
+     * 3. Create schedule
+     */
     const scheduleResult = await client.query(
-      `INSERT INTO public.task_schedules (
-        task_id, frequency, times_per_week, days_of_week, start_date, end_date
+      `
+      INSERT INTO public.task_schedules (
+        task_id,
+        frequency,
+        times_per_week,
+        days_of_week,
+        start_date,
+        end_date
       )
       VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING *`,
+      RETURNING *
+      `,
       [
         task.id,
         schedule.frequency,
@@ -107,13 +140,61 @@ export async function POST(req: Request) {
       ]
     );
 
+    /**
+     * 4. Generate task instances
+     */
+    const rangeStart = new Date(schedule.start_date);
+
+    const rangeEnd = new Date(schedule.start_date);
+    rangeEnd.setDate(rangeEnd.getDate() + 60); // 60-day window
+
+    const instances = generateTaskInstances(
+      {
+        ...task,
+        schedule: scheduleResult.rows[0],
+      },
+      rangeStart,
+      rangeEnd
+    );
+
+    console.log("GENERATED INSTANCES:", instances?.length);
+
+    /**
+     * 5. Insert instances
+     */
+    for (const inst of instances) {
+      await client.query(
+        `
+        INSERT INTO public.task_instances (
+          task_id,
+          scheduled_date,
+          status,
+          created_at
+        )
+        VALUES ($1, $2, 'PENDING', NOW())
+        ON CONFLICT (task_id, scheduled_date) DO NOTHING
+        `,
+        [inst.task_id, inst.scheduled_date]
+      );
+    }
+
     await client.query("COMMIT");
 
-    return Response.json({ ...task, schedule: scheduleResult.rows[0] }, { status: 201 });
+    return NextResponse.json(
+      {
+        ...task,
+        schedule: scheduleResult.rows[0],
+      },
+      { status: 201 }
+    );
   } catch (error) {
     await client.query("ROLLBACK");
-    console.error("API POST Error:", error);
-    return Response.json({ error: "Failed to create task" }, { status: 500 });
+    console.error("POST TASK ERROR:", error);
+
+    return NextResponse.json(
+      { error: "Failed to create task + schedule + instances" },
+      { status: 500 }
+    );
   } finally {
     client.release();
   }

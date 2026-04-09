@@ -12,7 +12,7 @@ export default function HomePage() {
   useEffect(() => {
     // Se o status for 'unauthenticated', manda para o login
     if (status === "unauthenticated") {
-      router.push("/api/auth/signin"); 
+      router.push("/api/auth/signin");
     }
   }, [status, router]);
 
@@ -27,9 +27,11 @@ export default function HomePage() {
   return (
     <>
       <section style={{ flex: 1, padding: "20px" }}>
-          <h1>Welcome {session.user?.name} to FlowTasks!</h1>
+        <h1>Welcome {session.user?.name} to FlowTasks!</h1>
       </section>
       <Schedule />
+      <section>
+      </section>
     </>
   );
 }

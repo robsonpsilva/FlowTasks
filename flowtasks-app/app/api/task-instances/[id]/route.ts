@@ -1,32 +1,40 @@
 import db from "@/app/lib/db";
+import { auth } from "@/auth";
 
 export async function PUT(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
-  const { id } = await params;
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
+  const userId = session.user.id;
+  const { id } = params;
   const body = await req.json();
 
-  try {
-    const result = await db.query(
-      `
-      UPDATE task_instances
-      SET 
-        status = $1,
+  const result = await db.query(
+    `
+    UPDATE task_instances
+    SET status = $1,
         completed_date = $2
-      WHERE id = $3
-      RETURNING *
-      `,
-      [
-        body.status,
-        body.completed_date ?? new Date().toISOString(),
-        id,
-      ]
-    );
+    WHERE id = $3
+      AND user_id = $4
+    RETURNING *
+    `,
+    [
+      body.status,
+      body.completed_date ?? new Date().toISOString(),
+      id,
+      userId,
+    ]
+  );
 
-    return Response.json(result.rows[0]);
-  } catch (err) {
-    console.error(err);
-    return new Response("Failed to update instance", { status: 500 });
+  if (result.rows.length === 0) {
+    return new Response("Not found", { status: 404 });
   }
+
+  return Response.json(result.rows[0]);
 }

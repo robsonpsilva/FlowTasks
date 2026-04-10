@@ -60,12 +60,6 @@ export default function TaskCard({
       }}
     >
       <label style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-        <input
-          type="checkbox"
-          checked={checked}
-          onChange={handleCheck}
-          disabled={loading}
-        />
         {task.title}
       </label>
     </div>

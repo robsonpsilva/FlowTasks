@@ -20,14 +20,14 @@ export type TaskPayload = {
 };
 
 export type SchedulePayload = {
-  frequency: 'DAILY' | 'WEEKLY';
+  frequency:'ONCE' | 'DAILY' | 'WEEKLY';
   days_of_week: Day[];
   start_date: string;
   end_date?: string;
 };
 
 export type ScheduleApiPayload = {
-  frequency: 'DAILY' | 'WEEKLY';
+  frequency: 'ONCE' | 'DAILY' | 'WEEKLY';
   days_of_week: number[];
   start_date: string;
   end_date?: string;

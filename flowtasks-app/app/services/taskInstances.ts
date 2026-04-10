@@ -1,12 +1,11 @@
-import { Task } from "../types/task";
+import { Task, TaskStatus } from "../types/task";
 
 export type TaskInstance = {
   id: number; // only for DB / persisted records
-
   task_id: number;
   scheduled_date: string;
   title: string;
-  status: string;
+  status: TaskStatus;
   priority: string;
 };
 

@@ -5,6 +5,7 @@ import DayColumn from './daycolumn';
 import WeeklyTaskList from '../weeklyTaskList';
 import styles from '../componentStyles/schedule.module.css';
 import { groupTaskInstancesByDate } from '@/app/services/taskGrouping';
+import { TaskInstance } from '@/app/services/taskInstances';
 
 function getWeekDates() {
   const today = new Date();
@@ -21,7 +22,7 @@ function getWeekDates() {
 }
 
 export default function Schedule() {
-  const [instances, setInstances] = useState<any[]>([]);
+  const [instances, setInstances] = useState<TaskInstance[]>([]);
 
   useEffect(() => {
     async function load() {
@@ -34,10 +35,14 @@ export default function Schedule() {
         `/api/task-instances?start=${start}&end=${end}`
       );
 
-      const data = await res.json();
-      console.log("INSTANCES:", data);
+      if (!res.ok) {
+        setInstances([]);
+        return;
+      }
 
-      setInstances(data);
+      const data = await res.json();
+
+      setInstances(Array.isArray(data) ? data : []);
     }
 
     load();

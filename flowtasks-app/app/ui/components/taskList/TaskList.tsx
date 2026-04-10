@@ -22,6 +22,7 @@ export default function TasksList({ tasks, handleEdit, handleDelete }: any) {
               />
       {currentTasks.map((task: any) => (
         <div key={task.id} className={styles.card}>
+          <p className={styles.cardStatus}>{task.status}</p>
           <h3 className={styles.cardTitle}>{task.title}</h3>
           <p className={styles.cardDescription}>{task.description}</p>
 

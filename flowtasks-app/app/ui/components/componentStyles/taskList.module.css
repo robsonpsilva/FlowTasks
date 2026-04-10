@@ -19,6 +19,12 @@
   margin-bottom: 8px;
 }
 
+.cardStatus {
+  font-size: 0.9em;
+  color: var(--secondary-color);
+  margin-bottom: 12px;
+}
+
 .cardDescription {
   margin-bottom: 16px;
 }

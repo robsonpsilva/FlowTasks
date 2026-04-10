@@ -12,17 +12,20 @@ export async function PUT(
   }
 
   const userId = session.user.id;
-  const { id } = params;
+  const { id } = await params;
   const body = await req.json();
 
   const result = await db.query(
     `
-    UPDATE task_instances
+    UPDATE task_instances ti
     SET status = $1,
         completed_date = $2
-    WHERE id = $3
-      AND user_id = $4
-    RETURNING *
+    FROM tasks t
+    JOIN tasks_users tu ON tu.tasks_id = t.id
+    WHERE ti.id = $3
+      AND ti.task_id = t.id
+      AND tu.users_id = $4
+    RETURNING ti.*;
     `,
     [
       body.status,

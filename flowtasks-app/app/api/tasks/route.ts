@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
     );
 
     const schedule = body.schedule;
-
+    console.log("RECEIVED SCHEDULE:", schedule);
     /**
      * 3. Create schedule
      */

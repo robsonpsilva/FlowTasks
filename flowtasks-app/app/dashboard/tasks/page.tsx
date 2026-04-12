@@ -7,7 +7,6 @@ import TaskForm from "@/app/ui/components/tasksForms/TaskForm";
 import styles from '@/app/ui/components/componentStyles/tasksPage.module.css';
 import { TaskWithSchedule } from "@/app/lib/formsHelper";
 import TasksList from "@/app/ui/components/taskList/TaskList";
-import {useIsMobile } from "@/app/ui/components/screenSize";
 
 
 export default function TasksPage() {
@@ -15,7 +14,6 @@ export default function TasksPage() {
   const [tasks, setTasks] = useState<any[]>([]);
   const [editingTask, setEditingTask] = useState<TaskWithSchedule | null>(null);
   const [taskToDelete, setTaskToDelete] = useState<number | null>(null);
-  const isMobile = useIsMobile();
 
   // Fetch tasks
   const loadTasks = useCallback(async () => {

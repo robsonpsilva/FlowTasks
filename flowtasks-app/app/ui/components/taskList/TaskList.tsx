@@ -82,7 +82,7 @@ export default function TasksList({ tasks, handleEdit, handleDelete }: any) {
             }`}>{task.priority}</p>
           <h3 className={styles.cardTitle}>{task.title}</h3>
           {/* <p>Category: {task.category}</p> */}
-          {/* <p>Frequency: {task.frequency}</p> */}
+          <p>Frequency: {task.schedule.frequency}</p>
           <p className={styles.cardDescription}>{task.description}</p>
           <p>Start Date: {formatDate(task.start_date)}</p>
           <p>End Date: {task.end_date ? formatDate(task.end_date) : 'N/A'}</p>

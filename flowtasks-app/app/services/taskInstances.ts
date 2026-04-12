@@ -1,19 +1,25 @@
-import { Task } from "../types/task";
+import { Task, TaskStatus } from "../types/task";
 
 export type TaskInstance = {
+  id: number; // only for DB / persisted records
   task_id: number;
-  date: string;
+  scheduled_date: string;
   title: string;
-  status: string;
+  status: TaskStatus;
   priority: string;
 };
+
+/**
+ * BEFORE DB INSERT (NO id)
+ */
+export type TaskInstanceCreate = Omit<TaskInstance, "id">;
 
 export function generateTaskInstances(
   task: Task,
   rangeStart: string | Date,
   rangeEnd: string | Date
-): TaskInstance[] {
-  const results: TaskInstance[] = [];
+): TaskInstanceCreate[] {
+  const results: TaskInstanceCreate[] = [];
 
   if (!task?.schedule?.start_date || !task?.schedule?.frequency) {
     return [];
@@ -41,6 +47,10 @@ export function generateTaskInstances(
   while (current <= actualEnd) {
     const dayOfWeek = current.getDay();
 
+    if (task.schedule.frequency === "ONCE") {
+      results.push(makeInstance(task, current));
+    }
+
     if (task.schedule.frequency === "DAILY") {
       results.push(makeInstance(task, current));
     }
@@ -58,14 +68,12 @@ export function generateTaskInstances(
   return results;
 }
 
-function makeInstance(task: Task, date: Date): TaskInstance {
+function makeInstance(task: Task, date: Date): TaskInstanceCreate {
   return {
     task_id: task.id,
-    date: date.toISOString().split("T")[0],
+    scheduled_date: date.toISOString().split("T")[0],
     title: task.title,
-    status: task.status,
-    priority: task.priority,
+    status: task.status || "PENDING",
+    priority: task.priority || "MEDIUM",
   };
 }
-
-

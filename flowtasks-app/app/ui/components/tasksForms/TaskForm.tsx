@@ -27,6 +27,7 @@ type Props = {
 
 export default function AddTaskForm({ open, initialData, onSuccess, mode}: Props) {
 // Form state
+const [hasSchedule, setHasSchedule] = useState(false);
   const [formData, setFormData] = useState<TaskPayload>({
     title: '',
     description: '',
@@ -37,23 +38,36 @@ export default function AddTaskForm({ open, initialData, onSuccess, mode}: Props
   });
 // Schedule state
   const [schedule, setSchedule] = useState<SchedulePayload>({
-    frequency: 'DAILY',
+    frequency: 'ONCE',
     days_of_week: [],
-    start_date: '',
-    end_date: '',
+    start_date: formatDate(today),
+    end_date: formatDate(today),
   });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [minStartDate, setMinStartDate] = useState('');
   const [maxEndDate, setMaxEndDate] = useState('');
+  const [categories, setCategories] = useState<any[]>([]);
 
   useEffect(() => {
   if (open) {
+    // Load categories for dropdown
+    async function loadCategories() {
+      const res = await fetch("/api/categories");
+      const data = await res.json();
+      setCategories(data);
+    }
+    loadCategories();
+
+    // If edit mode, populate form with existing data
     if (mode === 'edit' && initialData?.schedule) {
       const mappedDays = (initialData.schedule.days_of_week ?? []).map(
-            (dayNumber: number) => reverseDayMap[dayNumber]
-          );
+        (dayNumber: number) => reverseDayMap[dayNumber]
+      );
+
+      const frequency = initialData.schedule.frequency;
+
       setFormData({
         title: initialData.title,
         description: initialData.description,
@@ -64,17 +78,21 @@ export default function AddTaskForm({ open, initialData, onSuccess, mode}: Props
       });
 
       setSchedule({
-        frequency: initialData.schedule.frequency,
+        frequency,
         days_of_week: mappedDays,
         start_date: initialData.schedule.start_date
-                  ? formatDate(initialData.schedule.start_date)
-                  : '',
+          ? formatDate(initialData.schedule.start_date)
+          : '',
         end_date: initialData.schedule.end_date
-                ? formatDate(initialData.schedule.end_date)
-                : '',
+          ? formatDate(initialData.schedule.end_date)
+          : '',
       });
+
+      setHasSchedule(frequency !== 'ONCE');
     }
-  } else {
+
+    
+    } else {
     // Reset everything when modal closes
     setFormData({
       title: '',
@@ -86,11 +104,12 @@ export default function AddTaskForm({ open, initialData, onSuccess, mode}: Props
     });
 
     setSchedule({
-      frequency: 'DAILY',
+      frequency: 'ONCE',
       days_of_week: [],
-      start_date: '',
-      end_date: '',
+      start_date: formatDate(today),
+      end_date: formatDate(today),
     });
+    setHasSchedule(false);
 
     setError(null);
   }
@@ -116,6 +135,36 @@ const minEndDate = schedule.start_date || minStartDate;
   setMaxEndDate(max);
   }, []);
 
+  //----------------- HANDLERS For frequency ----------------
+
+    useEffect(() => {
+        if (!hasSchedule) {
+          setSchedule({
+            frequency: 'ONCE',
+            days_of_week: [],
+            start_date: formatDate(today),
+            end_date: formatDate(today),
+          });
+          return;
+        }
+
+        // When user turns ON schedule
+        setSchedule((prev) => {
+          // If coming from ONCE → default to DAILY
+          if (prev.frequency === 'ONCE') {
+            return {
+              frequency: 'DAILY',
+              days_of_week: [],
+              start_date: formatDate(today),
+              end_date: '',
+            };
+          }
+
+          // If already DAILY/WEEKLY (edit mode), keep it
+          return prev;
+        });
+
+      }, [hasSchedule]);
   // ---------------- HANDLER ----------------
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -123,7 +172,11 @@ const minEndDate = schedule.start_date || minStartDate;
     setLoading(true);
     setError(null);
 
+
     try {
+      let finalSchedule = { ...schedule };
+      
+  
         //Verify that if frequency is weekly, at least one day is selected
       if (schedule.frequency === 'WEEKLY' &&
         (!schedule.days_of_week || schedule.days_of_week.length === 0)) {
@@ -165,11 +218,13 @@ const minEndDate = schedule.start_date || minStartDate;
       });
 
       setSchedule({
-        frequency: 'DAILY',
+        frequency: 'ONCE',
         days_of_week: [],
         start_date: '',
         end_date: '',
       });
+
+      setHasSchedule(false);
 
       onSuccess?.(newTask);
 
@@ -222,18 +277,36 @@ const minEndDate = schedule.start_date || minStartDate;
         value={formData.category_id}
         onChange={(e) => handleTaskChange(e, setFormData)}
         className={styles.Input }
+        required
       >
-        <option value={1}>Work</option>
-        <option value={2}>Personal</option>
-        <option value={3}>Study</option>
+        {categories.length === 0 ? (
+            <option>Loading...</option>
+          ) : (
+            categories.map((cat) => (
+          <option key={cat.id} value={cat.id}>
+            {cat.name}
+          </option>
+        ))
+          )}
+
       </select>
-     
-        <h3 className={styles.sectionTitle}>Add Schedule</h3>
+
+      <label className={styles.checkboxLabel}>
+        <input
+            type="checkbox"
+            checked={hasSchedule}
+           onChange={(e) => {
+              setHasSchedule(e.target.checked);
+            }}
+          />
+        Add schedule
+      </label>
      
 
       {/* SCHEDULE FIELDS */}
      
-        <div className={styles.scheduleContainer}>
+      {hasSchedule && (
+          <div className={styles.scheduleContainer}>
           <select
             name="frequency"
             value={schedule.frequency}
@@ -244,7 +317,7 @@ const minEndDate = schedule.start_date || minStartDate;
             <option value="WEEKLY">Weekly</option>
           </select>
 
-         {schedule.frequency === 'WEEKLY' && (
+         {hasSchedule && schedule.frequency === 'WEEKLY' && (
           <div className={styles.daysContainer}>
             {days.map((day) => (
               <button
@@ -264,7 +337,7 @@ const minEndDate = schedule.start_date || minStartDate;
           <input
             type="date"
             name="start_date"
-            required
+            required={hasSchedule}
             value={schedule.start_date}
             onChange={(e) => handleScheduleChange(e, setSchedule)}
             min={minStartDate}
@@ -274,15 +347,16 @@ const minEndDate = schedule.start_date || minStartDate;
           <input
             type="date"
             name="end_date"
-            required={schedule.frequency === 'WEEKLY'}
+            required={hasSchedule && schedule.frequency === 'WEEKLY'}
             value={schedule.end_date}
             onChange={(e) => handleScheduleChange(e, setSchedule)}
             min={minEndDate}   // can't be before start_date
             max={maxEndDate}   // max 3 months ahead
             className={styles.Input }
-            disabled={schedule.frequency === 'DAILY'}
+            disabled={schedule.frequency === 'DAILY' || schedule.frequency === 'ONCE'}
             />
         </div>
+      )}
       
 
       <button

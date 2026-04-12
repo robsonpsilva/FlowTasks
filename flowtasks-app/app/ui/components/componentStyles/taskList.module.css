@@ -11,6 +11,18 @@
   border-radius: 12px;
   padding: 16px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+}
+
+.cardHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
 }
 
 .cardTitle {
@@ -19,13 +31,95 @@
   margin-bottom: 8px;
 }
 
+/* .cardPriority {
+  font-size: 0.9em;
+  color: var(--secondary-color);
+  margin-bottom: 12px;
+} */
+ .cardPriority {
+  width: fit-content;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.cardMeta {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.priorityHigh {
+  color: var(--light-color);
+  max-width: 50px;
+  text-align: center;
+  font-weight: 600;
+  background-color: var(--secondary-color);
+}
+
+.priorityMedium {
+  color: var(--light-color);
+  max-width: 65px;
+  text-align: center;
+  font-weight: 600;
+  background-color: orange;
+}
+
+.priorityLow {
+  color: var(--light-color);
+  max-width: 45px;
+  text-align: center;
+  font-weight: 600;
+  background-color: green;
+}
+
 .cardDescription {
   margin-bottom: 16px;
+  margin-left: 2%;
+}
+
+.cardCategory {
+  background-color: #e6f4ff;
+  color: #1677ff;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.cardFrequency {
+  background-color: #f6ffed;
+  color: #389e0d;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.cardBottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  flex-wrap: wrap;
+  gap: 0;
+}
+
+.cardDates {
+  display: flex;
+  justify-content:start;
+  flex-wrap: nowrap;
+  min-width: 250px;
+  align-items: baseline;
+  gap: 10%;
+  font-size: 12px;
+  color: var(--light-color);
+  margin-top: 10px;
 }
 
 .cardFooter {
   display: flex;
   justify-content: flex-end;
+  align-self: center;
   gap: 10px;
   margin-top: 10px;
 }
@@ -43,4 +137,89 @@
 
 .editButton:hover {
   background-color: #2563eb; 
+}
+/* -------CSS Filter -------- */
+.filtersContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+  padding: 16px;
+  margin-bottom: 20px;
+
+  background-color: var(--primary-color);
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+/* Each filter block */
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  color:  var(--light-color);
+}
+
+/* Label */
+.filterGroup label {
+  color: var(--secondary-color);
+  font-size: var(--large-font);
+  margin-bottom: 4px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+/* Inputs */
+.dropdown {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+  min-width: 140px;
+}
+
+.dropdownActive{
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+  min-width: 140px;
+  background-color: var(--secondary-color);
+  color: var(--light-color);
+}
+
+/* Focus effect */
+.dropdown:focus {
+  outline: none;
+  border-color: var(--secondary-color);
+}
+
+.dropdownDefault{
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+  min-width: 140px;
+}
+
+.dropdown:disabled {
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Clear button */
+.clearButton {
+  height: 38px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 8px;
+  background-color: #ef4444;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.clearButton:hover {
+  background-color: #dc2626;
 }

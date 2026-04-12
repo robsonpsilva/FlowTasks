@@ -2,7 +2,7 @@ import { TaskInstance } from '@/app/services/taskInstances';
 import TaskCard from './taskCard';
 import { Task } from '@/app/lib/definitions';
 
-export default function DayColumn({ date, tasks }: { date: Date; tasks: TaskInstance[] }) {
+export default function DayColumn({ date, tasks, onUpdate, }: { date: Date; tasks: TaskInstance[]; onUpdate: (id: number, status: "DONE" | "PENDING") => Promise<void>; }) {
   return (
     <div
       style={{
@@ -20,7 +20,11 @@ export default function DayColumn({ date, tasks }: { date: Date; tasks: TaskInst
       <p>{date.getDate()}</p>
 
       {tasks.map((task) => (
-        <TaskCard key={task.task_id} task={task} />
+        <TaskCard 
+          key={task.id} 
+          task={task} 
+          onUpdate={onUpdate}
+        />
       ))}
     </div>
   );

@@ -1,8 +1,8 @@
-export type TaskStatus = "PENDING" | "IN_PROGRESS" | "DONE";
+export type TaskStatus = "PENDING" | "DONE";
 export type PriorityLevel = "LOW" | "MEDIUM" | "HIGH";
 
 export type TaskSchedule = {
-  frequency: "DAILY" | "WEEKLY";
+  frequency: "ONCE" | "DAILY" | "WEEKLY";
   days_of_week: number[];
   start_date: string;
   end_date: string | null;

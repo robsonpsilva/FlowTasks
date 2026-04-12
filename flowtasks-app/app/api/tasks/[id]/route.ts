@@ -1,5 +1,6 @@
 import db from "../../../lib/db";
 
+
 // GET BY ID
 export async function GET(
   _: Request,
@@ -26,7 +27,7 @@ export async function PUT(
   const client = await db.connect();
 
   try {
-    await client.query('BEGIN');
+    await client.query("BEGIN");
 
     // 1. Update task
     const taskResult = await client.query(
@@ -49,7 +50,7 @@ export async function PUT(
       ]
     );
 
-    // 2. Update schedule (assuming 1:1 relation)
+    // 2. Update schedule (1:1 relation)
     const scheduleResult = await client.query(
       `UPDATE task_schedules
        SET frequency = $1,
@@ -67,18 +68,17 @@ export async function PUT(
       ]
     );
 
-    await client.query('COMMIT');
+    await client.query("COMMIT");
 
-    // 3. Combine response
     return Response.json({
       ...taskResult.rows[0],
       schedule: scheduleResult.rows[0],
     });
 
   } catch (error) {
-    await client.query('ROLLBACK');
+    await client.query("ROLLBACK");
     console.error(error);
-    return new Response('Failed to update task', { status: 500 });
+    return new Response("Failed to update task", { status: 500 });
   } finally {
     client.release();
   }
@@ -100,7 +100,6 @@ export async function DEACTIVATE_TASK(
 }
 
 // DELETE /api/tasks/[id]
-
 export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -108,51 +107,54 @@ export async function DELETE(
   const client = await db.connect();
 
   try {
-    await client.query('BEGIN');
+    await client.query("BEGIN");
 
     const { id } = await params;
 
-    // 1️⃣ Delete relations with users  
+    // 1. delete user relations
     await client.query(
       `DELETE FROM tasks_users WHERE tasks_id = $1`,
       [id]
     );
 
-    // 2️⃣ Delete relations with instances
+    // 2. delete instances
     await client.query(
       `DELETE FROM task_instances WHERE task_id = $1`,
       [id]
     );
 
-    // 3️⃣ Delete schedule
+    // 3. delete schedule
     await client.query(
       `DELETE FROM task_schedules WHERE task_id = $1`,
       [id]
     );
 
-    // 4️⃣ Delete task
+    // 4. delete task
     const result = await client.query(
       `DELETE FROM tasks WHERE id = $1 RETURNING *`,
       [id]
     );
 
-    await client.query('COMMIT');
+    await client.query("COMMIT");
 
     if (result.rowCount === 0) {
-      return Response.json({ error: 'Task not found' }, { status: 404 });
+      return Response.json(
+        { error: "Task not found" },
+        { status: 404 }
+      );
     }
 
     return Response.json(
-      { message: 'Task deleted successfully' },
+      { message: "Task deleted successfully" },
       { status: 200 }
     );
 
   } catch (error) {
-    await client.query('ROLLBACK');
+    await client.query("ROLLBACK");
     console.error(error);
 
     return Response.json(
-      { error: 'Failed to delete task' },
+      { error: "Failed to delete task" },
       { status: 500 }
     );
   } finally {

@@ -85,7 +85,7 @@ export default function TasksList({ tasks, handleEdit, handleDelete }: any) {
           {/* <p>Frequency: {task.frequency}</p> */}
           <p className={styles.cardDescription}>{task.description}</p>
           <p>Start Date: {formatDate(task.start_date)}</p>
-          <p>End Date: {formatDate(task.end_date)}</p>
+          <p>End Date: {task.end_date ? formatDate(task.end_date) : 'N/A'}</p>
 
           <div className={styles.cardFooter}>
             <Button onClick={() => handleEdit(task)} className={styles.editButton}>

@@ -1,4 +1,4 @@
-import { Day, TaskPayload, SchedulePayload } from './formsHelper';
+import { Day, TaskPayload, SchedulePayload, formatDate} from './formsHelper';
 
 // AddTaskForm TASK HANDLER
 export function handleTaskChange(
@@ -15,7 +15,6 @@ export function handleTaskChange(
   }));
 }
 
-// AddTaskForm SCHEDULE HANDLER
 export function handleScheduleChange(
   e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   setSchedule: React.Dispatch<React.SetStateAction<SchedulePayload>>
@@ -26,7 +25,10 @@ export function handleScheduleChange(
     ...prev,
     [name]: value,
     ...(name === 'frequency' && value === 'DAILY'
-      ? { days_of_week: [] }
+      ? {
+          days_of_week: [],
+          end_date: '', // 🔥 ensure rule is enforced
+        }
       : {}),
   }));
 }

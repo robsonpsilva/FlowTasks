@@ -53,8 +53,11 @@ const [hasSchedule, setHasSchedule] = useState(false);
   if (open) {
     if (mode === 'edit' && initialData?.schedule) {
       const mappedDays = (initialData.schedule.days_of_week ?? []).map(
-            (dayNumber: number) => reverseDayMap[dayNumber]
-          );
+        (dayNumber: number) => reverseDayMap[dayNumber]
+      );
+
+      const frequency = initialData.schedule.frequency;
+
       setFormData({
         title: initialData.title,
         description: initialData.description,
@@ -65,17 +68,19 @@ const [hasSchedule, setHasSchedule] = useState(false);
       });
 
       setSchedule({
-        frequency: initialData.schedule.frequency,
+        frequency,
         days_of_week: mappedDays,
         start_date: initialData.schedule.start_date
-                  ? formatDate(initialData.schedule.start_date)
-                  : '',
+          ? formatDate(initialData.schedule.start_date)
+          : '',
         end_date: initialData.schedule.end_date
-                ? formatDate(initialData.schedule.end_date)
-                : '',
+          ? formatDate(initialData.schedule.end_date)
+          : '',
       });
+
+      setHasSchedule(frequency !== 'ONCE');
     }
-  } else {
+    } else {
     // Reset everything when modal closes
     setFormData({
       title: '',
@@ -120,37 +125,34 @@ const minEndDate = schedule.start_date || minStartDate;
 
   //----------------- HANDLERS For frequency ----------------
 
-useEffect(() => {
-  if (!hasSchedule) return;
+    useEffect(() => {
+        if (!hasSchedule) {
+          setSchedule({
+            frequency: 'ONCE',
+            days_of_week: [],
+            start_date: formatDate(today),
+            end_date: formatDate(today),
+          });
+          return;
+        }
 
-  if (schedule.frequency === 'DAILY') {
-    setSchedule((prev) => ({
-      ...prev,
-      end_date: '', // always empty
-      days_of_week: [],
-    }));
-  }
-}, [schedule.frequency, hasSchedule]);
+        // When user turns ON schedule
+        setSchedule((prev) => {
+          // If coming from ONCE → default to DAILY
+          if (prev.frequency === 'ONCE') {
+            return {
+              frequency: 'DAILY',
+              days_of_week: [],
+              start_date: formatDate(today),
+              end_date: '',
+            };
+          }
 
-useEffect(() => {
-  if (!hasSchedule) {
+          // If already DAILY/WEEKLY (edit mode), keep it
+          return prev;
+        });
 
-    setSchedule({
-      frequency: 'ONCE',
-      days_of_week: [],
-      start_date: formatDate(today),
-      end_date: formatDate(today),
-    });
-  }else{
-    setSchedule({
-      frequency: 'DAILY',
-      days_of_week: [],
-      start_date: formatDate(today),
-      end_date: '', // end_date is not needed for DAILY, so we can keep it empty
-    })
-  } 
-}, [hasSchedule]);
-
+      }, [hasSchedule]);
   // ---------------- HANDLER ----------------
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -271,10 +273,12 @@ useEffect(() => {
 
       <label className={styles.checkboxLabel}>
         <input
-          type="checkbox"
-          checked={hasSchedule}
-          onChange={(e) => setHasSchedule(e.target.checked)}
-        />
+            type="checkbox"
+            checked={hasSchedule}
+           onChange={(e) => {
+              setHasSchedule(e.target.checked);
+            }}
+          />
         Add schedule
       </label>
      

@@ -48,9 +48,19 @@ const [hasSchedule, setHasSchedule] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [minStartDate, setMinStartDate] = useState('');
   const [maxEndDate, setMaxEndDate] = useState('');
+  const [categories, setCategories] = useState<any[]>([]);
 
   useEffect(() => {
   if (open) {
+    // Load categories for dropdown
+    async function loadCategories() {
+      const res = await fetch("/api/categories");
+      const data = await res.json();
+      setCategories(data);
+    }
+    loadCategories();
+
+    // If edit mode, populate form with existing data
     if (mode === 'edit' && initialData?.schedule) {
       const mappedDays = (initialData.schedule.days_of_week ?? []).map(
         (dayNumber: number) => reverseDayMap[dayNumber]
@@ -80,6 +90,8 @@ const [hasSchedule, setHasSchedule] = useState(false);
 
       setHasSchedule(frequency !== 'ONCE');
     }
+
+    
     } else {
     // Reset everything when modal closes
     setFormData({
@@ -265,10 +277,18 @@ const minEndDate = schedule.start_date || minStartDate;
         value={formData.category_id}
         onChange={(e) => handleTaskChange(e, setFormData)}
         className={styles.Input }
+        required
       >
-        <option value={1}>Work</option>
-        <option value={2}>Personal</option>
-        <option value={3}>Study</option>
+        {categories.length === 0 ? (
+            <option>Loading...</option>
+          ) : (
+            categories.map((cat) => (
+          <option key={cat.id} value={cat.id}>
+            {cat.name}
+          </option>
+        ))
+          )}
+
       </select>
 
       <label className={styles.checkboxLabel}>

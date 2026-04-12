@@ -1,12 +1,5 @@
 import db from "../../../lib/db";
 
-// helper: convert empty string → null for timestamp fields
-const toTimestamp = (value: any) => {
-  if (value === "" || value === undefined || value === null) {
-    return null;
-  }
-  return value;
-};
 
 // GET BY ID
 export async function GET(

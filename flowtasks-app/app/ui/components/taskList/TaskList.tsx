@@ -100,17 +100,10 @@ export default function TasksList({ tasks, handleEdit, handleDelete }: any) {
 
               <h3 className={styles.cardTitle}>{task.title}</h3>
             </div>
-          {/* <p className={`${styles.cardPriority} ${
-              task.priority === 'HIGH'
-                ? styles.priorityHigh
-                : task.priority === 'MEDIUM'
-                ? styles.priorityMedium
-                : styles.priorityLow
-            }`}>{task.priority}</p>
-          <h3 className={styles.cardTitle}>{task.title}</h3> */}
+         
           {/* DESCRIPTION */}
             <p className={styles.cardDescription}>{task.description}</p>
-          {/* <p className={styles.cardDescription}>{task.description}</p> */}
+         
 
           {/* META */}
             <div className={styles.cardMeta}>
@@ -124,32 +117,24 @@ export default function TasksList({ tasks, handleEdit, handleDelete }: any) {
                 {task.schedule.frequency}
               </p>
             </div>
-          
-          {/* <p className={styles.cardCategory}>
-            Category: {
-              categories.find(c => c.id === task.category_id)?.name || 'Unknown'
-            }
-          </p>
-          <p className={styles.cardCategory}>Frequency: {task.schedule.frequency}</p> */}
+    
 
-           {/* DATES */}
+          <div className={styles.cardBottom}>
+             {/* DATES */}
             <div className={styles.cardDates}>
               <p>Start: {formatDate(task.start_date)}</p>
               <p>End: {task.end_date ? formatDate(task.end_date) : 'N/A'}</p>
             </div>
 
-          
-          {/* <p>Start Date: {formatDate(task.start_date)}</p>
-          <p>End Date: {task.end_date ? formatDate(task.end_date) : 'N/A'}</p> */}
-
-          {/* FOOTER */}
-          <div className={styles.cardFooter}>
-            <Button onClick={() => handleEdit(task)} className={styles.editButton}>
-              Edit
-            </Button>
-            <Button onClick={() => handleDelete(task.id)} className={styles.deleteButton}>
-              Delete
-            </Button>
+            {/* FOOTER */}
+            <div className={styles.cardFooter}>
+              <Button onClick={() => handleEdit(task)} className={styles.editButton}>
+                Edit
+              </Button>
+              <Button onClick={() => handleDelete(task.id)} className={styles.deleteButton}>
+                Delete
+              </Button>
+            </div>
           </div>
         </div>
       ))}

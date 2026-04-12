@@ -1,4 +1,4 @@
-export type TaskStatus = "PENDING" | "IN_PROGRESS" | "DONE";
+export type TaskStatus = "PENDING" | "DONE";
 export type PriorityLevel = "LOW" | "MEDIUM" | "HIGH";
 
 export type TaskSchedule = {

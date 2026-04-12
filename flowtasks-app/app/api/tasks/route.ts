@@ -146,7 +146,7 @@ export async function POST(req: NextRequest) {
     const rangeStart = new Date(schedule.start_date);
 
     const rangeEnd = new Date(schedule.start_date);
-    rangeEnd.setDate(rangeEnd.getDate() + 60); // 60-day window
+    rangeEnd.setDate(rangeEnd.getDate() + 6); // limit 1 week to conserve DB
 
     const instances = generateTaskInstances(
       {

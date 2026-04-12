@@ -1,7 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import db from "../../lib/db";
+import { auth } from "@/auth";
 
 export async function GET(req: NextRequest) {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const userId = session.user.id;
+
   const { searchParams } = new URL(req.url);
 
   const start = searchParams.get("start");
@@ -19,12 +28,14 @@ export async function GET(req: NextRequest) {
         t.priority
       FROM task_instances ti
       JOIN tasks t ON t.id = ti.task_id
+      JOIN tasks_users tu ON tu.tasks_id = t.id
+      WHERE tu.users_id = $1
     `;
 
-    const params: any[] = [];
+    const params: any[] = [userId];
 
     if (start && end) {
-      query += ` WHERE ti.scheduled_date BETWEEN $1 AND $2 `;
+      query += ` AND ti.scheduled_date BETWEEN $2 AND $3 `;
       params.push(start, end);
     }
 

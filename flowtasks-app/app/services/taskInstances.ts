@@ -47,6 +47,10 @@ export function generateTaskInstances(
   while (current <= actualEnd) {
     const dayOfWeek = current.getDay();
 
+    if (task.schedule.frequency === "ONCE") {
+      results.push(makeInstance(task, current));
+    }
+
     if (task.schedule.frequency === "DAILY") {
       results.push(makeInstance(task, current));
     }

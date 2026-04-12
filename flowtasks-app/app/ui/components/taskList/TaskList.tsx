@@ -1,13 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect} from "react";
 import styles from '../componentStyles/taskList.module.css';
 import Button from "../button";
 import Pagination from "../tasksTable/Pagination";
 import {formatDate} from '@/app/lib/formsHelper';
 import TaskFilters from "./TaskFilters";
+import { getCategories } from "@/app/lib/dbCallHandelers";
 const ITEMS_PER_PAGE = 5; 
 
 export default function TasksList({ tasks, handleEdit, handleDelete }: any) {
-
+    const [categories, setCategories] = useState<any[]>([]);
      const [currentPage, setCurrentPage] = useState<number>(1);
      const [filters, setFilters] = useState({
       priority: '',
@@ -60,7 +61,19 @@ export default function TasksList({ tasks, handleEdit, handleDelete }: any) {
         startIndex,
         startIndex + ITEMS_PER_PAGE
       );
+      useEffect(() => {
+        async function loadCategories() {
+          const data = await getCategories();
+          setCategories(data);
+        }
 
+        loadCategories();
+      }, []);
+
+      const getCategoryName = (id: number) => {
+        const category = categories.find((c) => c.id === id);
+        return category ? category.name : 'Unknown';
+      };
       
     
   return (
@@ -73,27 +86,55 @@ export default function TasksList({ tasks, handleEdit, handleDelete }: any) {
               />
       {currentTasks.map((task: any) => (
         <div key={task.id} className={styles.card}>
-          <p className={`${styles.cardPriority} ${
-              task.priority === 'HIGH'
-                ? styles.priorityHigh
-                : task.priority === 'MEDIUM'
-                ? styles.priorityMedium
-                : styles.priorityLow
-            }`}>{task.priority}</p>
-          <h3 className={styles.cardTitle}>{task.title}</h3>
-          {/* <p>Category: {task.category}</p> */}
-          {/* <p>Frequency: {task.frequency}</p> */}
-          <p className={styles.cardDescription}>{task.description}</p>
-          <p>Start Date: {formatDate(task.start_date)}</p>
-          <p>End Date: {task.end_date ? formatDate(task.end_date) : 'N/A'}</p>
+          {/* HEADER */}
+            <div className={styles.cardHeader}>
+              <p className={`${styles.cardPriority} ${
+                task.priority === 'HIGH'
+                  ? styles.priorityHigh
+                  : task.priority === 'MEDIUM'
+                  ? styles.priorityMedium
+                  : styles.priorityLow
+              }`}>
+                {task.priority}
+              </p>
 
-          <div className={styles.cardFooter}>
-            <Button onClick={() => handleEdit(task)} className={styles.editButton}>
-              Edit
-            </Button>
-            <Button onClick={() => handleDelete(task.id)} className={styles.deleteButton}>
-              Delete
-            </Button>
+              <h3 className={styles.cardTitle}>{task.title}</h3>
+            </div>
+         
+          {/* DESCRIPTION */}
+            <p className={styles.cardDescription}>{task.description}</p>
+         
+
+          {/* META */}
+            <div className={styles.cardMeta}>
+              <p className={styles.cardCategory}>
+                {
+                  categories.find(c => c.id === task.category_id)?.name || 'Unknown'
+                }
+              </p>
+
+              <p className={styles.cardFrequency}>
+                {task.schedule.frequency}
+              </p>
+            </div>
+    
+
+          <div className={styles.cardBottom}>
+             {/* DATES */}
+            <div className={styles.cardDates}>
+              <p>Start: {formatDate(task.start_date)}</p>
+              <p>End: {task.end_date ? formatDate(task.end_date) : 'N/A'}</p>
+            </div>
+
+            {/* FOOTER */}
+            <div className={styles.cardFooter}>
+              <Button onClick={() => handleEdit(task)} className={styles.editButton}>
+                Edit
+              </Button>
+              <Button onClick={() => handleDelete(task.id)} className={styles.deleteButton}>
+                Delete
+              </Button>
+            </div>
           </div>
         </div>
       ))}
